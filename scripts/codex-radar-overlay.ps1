@@ -41,6 +41,15 @@ function Format-BeijingShort([string]$instant) {
   } catch { return $null }
 }
 
+function Format-BeijingDayShort([string]$instant) {
+  if ([string]::IsNullOrWhiteSpace($instant)) { return $null }
+  try {
+    $parsed = [DateTimeOffset]::Parse($instant, [Globalization.CultureInfo]::InvariantCulture)
+    $local = [TimeZoneInfo]::ConvertTime($parsed, $script:beijingTimeZone)
+    return "$($local.Day)$(TextFrom64 '5Y+3')$($local.ToString('HH:mm').Replace(':', [char]0xFF1A))"
+  } catch { return $null }
+}
+
 [xml]$xaml = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -104,11 +113,11 @@ function Format-BeijingShort([string]$instant) {
         </Grid>
         <TextBlock x:Name="WeeklyResetLine" Margin="0,3,0,0" FontSize="12" FontWeight="Bold" Foreground="#FFFFFFFF" TextWrapping="NoWrap"/>
       </StackPanel>
-      <StackPanel x:Name="TiboPanel" Grid.Row="2" Margin="0,7,0,0">
-        <TextBlock x:Name="TiboTimeLine" Foreground="#FFFFCF4A" FontSize="14" FontWeight="ExtraBold" TextWrapping="NoWrap"/>
+      <StackPanel x:Name="TiboPanel" Grid.Row="2" Margin="0,11,0,0">
+        <TextBlock x:Name="TiboTimeLine" Foreground="#FFFFCF4A" FontSize="12.5" FontWeight="ExtraBold" TextWrapping="NoWrap"/>
         <Grid Margin="0,3,0,0">
           <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-          <TextBlock x:Name="TiboForecastLine" Grid.Column="0" Margin="0,3,0,0" Foreground="#FFFFFFFF" FontSize="10.5" FontWeight="Bold" TextWrapping="NoWrap"/>
+          <TextBlock x:Name="TiboForecastLine" Grid.Column="0" Margin="0,3,0,0" Foreground="#FFFFFFFF" FontSize="12" FontWeight="Bold" TextWrapping="NoWrap"/>
           <Button x:Name="TiboDetailButton" Grid.Column="1" Margin="7,0,0,0" Padding="3,1" Background="#C0152639" BorderBrush="#5D91FFE2" BorderThickness="1" Foreground="#FF91FFE2" FontSize="11.5" FontWeight="Bold"><Button.Effect><DropShadowEffect Color="#FF000000" BlurRadius="4" ShadowDepth="1" Opacity="0.95"/></Button.Effect></Button>
           <Button x:Name="SkinButton" Grid.Column="2" Width="20" Margin="5,0,0,0" Padding="0" Background="#C0152639" BorderBrush="#5D8FEAFF" BorderThickness="1" Foreground="#FF8FEAFF" FontFamily="Segoe UI Symbol" FontSize="12" FontWeight="Bold"><Button.Effect><DropShadowEffect Color="#FF000000" BlurRadius="4" ShadowDepth="1" Opacity="0.95"/></Button.Effect></Button>
         </Grid>
@@ -184,6 +193,7 @@ $script:isExpanded = $false
 $script:expandedHeight = 166
 $script:collapseAt = $null
 $script:skinIndex = 0
+$script:skinMenu = $null
 $script:skins = @(
   [pscustomobject]@{ Key='digi-egg'; Name64='5pWw56CB6JuL'; Glyph64='4peI'; Mark='DIGI'; Shell='#F00B334A'; Border='#FF66E4FF'; Track='#77456F83'; Arc='#FFFFFFFF'; Text='#FFFFFFFF'; Glyph='#FFFFE56A'; Band='#E639D3F3'; Core='#FFFF4AA2'; Badge='#EC10202C'; MarkColor='#FF9DF4FF'; Shadow='#FF31CBFF'; GlyphSize=17; Angle=-28 },
   [pscustomobject]@{ Key='dragon-orb'; Name64='5Zub5pif6b6Z54+g'; Glyph64='4piF4piF4piF4piF'; Mark='4 STAR'; Shell='#F0F28A16'; Border='#FFFFD044'; Track='#88FFE29A'; Arc='#FFFFFFFF'; Text='#FF2B1100'; Glyph='#FFE11B22'; Band='#D9FFB02A'; Core='#FFE11B22'; Badge='#EFFFF1C7'; MarkColor='#FF7A1A00'; Shadow='#FFFF6A19'; GlyphSize=10; Angle=20 },
@@ -198,8 +208,8 @@ $script:skins = @(
   [pscustomobject]@{ Key='rainbow-candy'; Name64='5b2p6Jm557OW55CD'; Glyph64='4pym'; Mark='CANDY'; Shell='#F0D62F83'; Border='#FFFFD6EC'; Track='#77FF9FCD'; Arc='#FFFFFFFF'; Text='#FF4A1130'; Glyph='#FFFFF36B'; Band='#E573E7FF'; Core='#FF72FFA8'; Badge='#F0FFE3F1'; MarkColor='#FFFFFFFF'; Shadow='#FFFF4FA3'; GlyphSize=20; Angle=-33 },
   [pscustomobject]@{ Key='space-pod'; Name64='5aSq56m66Iix'; Glyph64='4qyh'; Mark='SPACE'; Shell='#F02D3D49'; Border='#FFC1F2FF'; Track='#77738D9A'; Arc='#FFFFFFFF'; Text='#FFFFFFFF'; Glyph='#FFBDF7FF'; Band='#D95E7C91'; Core='#FFFFA83E'; Badge='#EC17232C'; MarkColor='#FFD8F8FF'; Shadow='#FF6CC9E8'; GlyphSize=19; Angle=16 }
 )
-$script:tiboForecastOverrides = @{
-  'b78bc848b558a5353254' = '57qm5ZGo5pel5LiK5Y2IM+eCueWJjQ=='
+$script:tiboDisplayOverrides = @{
+  'b78bc848b558a5353254' = [pscustomobject]@{ Posted64='Mjflj7cxM++8mjM4'; Forecast64='57qmMjjlj7cxM++8mjAw' }
 }
 
 function ConvertTo-Brush([string]$value) {
@@ -208,7 +218,22 @@ function ConvertTo-Brush([string]$value) {
 
 function Apply-Skin {
   $skin = $script:skins[$script:skinIndex]
-  $compactShell.Fill = ConvertTo-Brush $skin.Shell
+  $shellGradient = New-Object Windows.Media.LinearGradientBrush
+  $shellGradient.StartPoint = New-Object Windows.Point -ArgumentList 0.15, 0.05
+  $shellGradient.EndPoint = New-Object Windows.Point -ArgumentList 0.85, 0.95
+  $highlightStop = New-Object Windows.Media.GradientStop
+  $highlightStop.Color = [Windows.Media.ColorConverter]::ConvertFromString($skin.Band)
+  $highlightStop.Offset = 0
+  $shellStop = New-Object Windows.Media.GradientStop
+  $shellStop.Color = [Windows.Media.ColorConverter]::ConvertFromString($skin.Shell)
+  $shellStop.Offset = 0.58
+  $shadowStop = New-Object Windows.Media.GradientStop
+  $shadowStop.Color = [Windows.Media.ColorConverter]::ConvertFromString('#F0020710')
+  $shadowStop.Offset = 1
+  [void]$shellGradient.GradientStops.Add($highlightStop)
+  [void]$shellGradient.GradientStops.Add($shellStop)
+  [void]$shellGradient.GradientStops.Add($shadowStop)
+  $compactShell.Fill = $shellGradient
   $compactShell.Stroke = ConvertTo-Brush $skin.Border
   $compactBand.Background = ConvertTo-Brush $skin.Band
   $compactBand.RenderTransform.Angle = [double]$skin.Angle
@@ -226,6 +251,11 @@ function Apply-Skin {
   $compactShell.Effect.Color = [Windows.Media.ColorConverter]::ConvertFromString($skin.Shadow)
   $skinName = TextFrom64 $skin.Name64
   $skinButton.ToolTip = "$(TextFrom64 '5b2T5YmN55qu6IKk77ya')$skinName · $(TextFrom64 '54K55Ye75Iqk5o2i6IKk')"
+  if ($null -ne $script:skinMenu) {
+    for ($index = 0; $index -lt $script:skinMenu.Items.Count; $index++) {
+      $script:skinMenu.Items[$index].IsChecked = $index -eq $script:skinIndex
+    }
+  }
 }
 
 function Set-CompactQuotaArc($remainingPercent) {
@@ -254,6 +284,52 @@ function Set-CompactQuotaArc($remainingPercent) {
   $geometry = New-Object Windows.Media.PathGeometry
   [void]$geometry.Figures.Add($figure)
   $compactQuotaArc.Data = $geometry
+}
+
+function Initialize-SkinMenu {
+  $menu = New-Object Windows.Controls.ContextMenu
+  for ($index = 0; $index -lt $script:skins.Count; $index++) {
+    $item = New-Object Windows.Controls.MenuItem
+    $item.Header = "$(TextFrom64 $script:skins[$index].Glyph64)  $(TextFrom64 $script:skins[$index].Name64)"
+    $item.Tag = $index
+    $item.IsCheckable = $true
+    $item.Add_Click({
+      param($sender, $eventArgs)
+      $script:skinIndex = [int]$sender.Tag
+      Apply-Skin
+      Save-OverlayPosition
+    })
+    [void]$menu.Items.Add($item)
+  }
+  $script:skinMenu = $menu
+}
+
+function Show-SkinMenu($target) {
+  if ($null -eq $script:skinMenu) { Initialize-SkinMenu }
+  $script:skinMenu.PlacementTarget = $target
+  $script:skinMenu.Placement = [Windows.Controls.Primitives.PlacementMode]::Bottom
+  $script:skinMenu.IsOpen = $true
+}
+
+function Start-SkinAnimations {
+  $rotation = New-Object Windows.Media.RotateTransform
+  $rotation.CenterX = 29
+  $rotation.CenterY = 29
+  $compactQuotaArc.RenderTransform = $rotation
+  $spin = New-Object Windows.Media.Animation.DoubleAnimation
+  $spin.From = 0
+  $spin.To = 360
+  $spin.Duration = [TimeSpan]::FromSeconds(12)
+  $spin.RepeatBehavior = [Windows.Media.Animation.RepeatBehavior]::Forever
+  $rotation.BeginAnimation([Windows.Media.RotateTransform]::AngleProperty, $spin)
+
+  $pulse = New-Object Windows.Media.Animation.DoubleAnimation
+  $pulse.From = 0.42
+  $pulse.To = 1
+  $pulse.Duration = [TimeSpan]::FromSeconds(1.4)
+  $pulse.AutoReverse = $true
+  $pulse.RepeatBehavior = [Windows.Media.Animation.RepeatBehavior]::Forever
+  $compactCore.BeginAnimation([Windows.UIElement]::OpacityProperty, $pulse)
 }
 
 function Clamp-OverlayToWorkArea {
@@ -441,16 +517,16 @@ function Update-Overlay {
     }
     $watch = $state.public.activeWatch
     if ($null -ne $watch) {
-      $postedAt = Format-BeijingShort ([string]$watch.observedAt)
-      $deadlineAt = Format-BeijingShort ([string]$watch.expiresAt)
-      $timeLabel = if ($postedAt) { $postedAt } else { TextFrom64 '5b6F5a6a' }
-      $tiboTimeLine.Text = "$(TextFrom64 'VGlib+eJqeeQhumHjee9ru+8iA==')$timeLabel$(TextFrom64 '77yJ')"
-      $override = $script:tiboForecastOverrides[[string]$watch.id]
-      $forecastLabel = if ($override) { TextFrom64 $override } elseif ($deadlineAt) { "$(TextFrom64 '57qm')$deadlineAt$(TextFrom64 '5YmN')" } else { TextFrom64 '6aKE5rWL5pe26Ze05b6F5a6a' }
-      $tiboForecastLine.Text = "$(TextFrom64 '6aKE5rWL6YeN572u5pe26Ze077ya')$forecastLabel"
+      $postedAt = Format-BeijingDayShort ([string]$watch.observedAt)
+      $deadlineAt = Format-BeijingDayShort ([string]$watch.expiresAt)
+      $override = $script:tiboDisplayOverrides[[string]$watch.id]
+      $timeLabel = if ($override) { TextFrom64 $override.Posted64 } elseif ($postedAt) { $postedAt } else { TextFrom64 '5b6F5a6a' }
+      $tiboTimeLine.Text = "$(TextFrom64 'VGlib+mHjee9ru+8iA==')$timeLabel$(TextFrom64 '77yJ')"
+      $forecastLabel = if ($override) { TextFrom64 $override.Forecast64 } elseif ($deadlineAt) { "$(TextFrom64 '57qm')$deadlineAt" } else { TextFrom64 '6aKE5rWL5pe26Ze05b6F5a6a' }
+      $tiboForecastLine.Text = $forecastLabel
       $script:expandedHeight += 20
     } else {
-      $tiboTimeLine.Text = "$(TextFrom64 'VGlib+eJqeeQhumHjee9ru+8iA==')$(TextFrom64 '5peg')$(TextFrom64 '77yJ')"
+      $tiboTimeLine.Text = "$(TextFrom64 'VGlib+mHjee9ru+8iA==')$(TextFrom64 '5peg')$(TextFrom64 '77yJ')"
       $tiboForecastLine.Text = ''
     }
   } catch {
@@ -460,7 +536,7 @@ function Update-Overlay {
     $weeklyPacePanel.Visibility = [Windows.Visibility]::Collapsed
     $weeklyPaceMarker.Margin = New-Object Windows.Thickness(80, 0, 0, 0)
     $unavailableLine.Visibility = [Windows.Visibility]::Visible
-    $tiboTimeLine.Text = "$(TextFrom64 'VGlib+eJqeeQhumHjee9ru+8iA==')$(TextFrom64 '5peg')$(TextFrom64 '77yJ')"
+    $tiboTimeLine.Text = "$(TextFrom64 'VGlib+mHjee9ru+8iA==')$(TextFrom64 '5peg')$(TextFrom64 '77yJ')"
     $tiboForecastLine.Text = ''
     $compactPercentLine.Text = [char]0x2014
     Set-CompactQuotaArc $null
@@ -469,6 +545,9 @@ function Update-Overlay {
   Show-NearTopRight
 }
 
+Initialize-SkinMenu
+Start-SkinAnimations
+
 $closeButton.Add_Click({
   $script:closedForCurrentProcess = $script:lastTargetProcess
   Collapse-Overlay
@@ -476,20 +555,16 @@ $closeButton.Add_Click({
 })
 $weeklyUsageButton.Add_Click({ Start-Process 'http://127.0.0.1:43721/usage.html' })
 $tiboDetailButton.Add_Click({ Start-Process 'http://127.0.0.1:43721/' })
-$skinButton.Add_Click({
-  $script:skinIndex = ($script:skinIndex + 1) % $script:skins.Count
-  Apply-Skin
-  Save-OverlayPosition
-})
+$skinButton.Add_Click({ Show-SkinMenu $skinButton })
 $root.Add_MouseLeftButtonDown({
   if (-not $closeButton.IsMouseOver -and -not $weeklyUsageButton.IsMouseOver -and -not $tiboDetailButton.IsMouseOver -and -not $skinButton.IsMouseOver) { try { $window.DragMove() } catch { } }
 })
 $root.Add_MouseLeftButtonUp({ Save-OverlayPosition })
 $compactPanel.Add_MouseEnter({ Expand-Overlay })
 $compactPanel.Add_MouseRightButtonDown({
-  $script:skinIndex = ($script:skinIndex + 1) % $script:skins.Count
-  Apply-Skin
-  Save-OverlayPosition
+  param($sender, $eventArgs)
+  $eventArgs.Handled = $true
+  Show-SkinMenu $compactPanel
 })
 $root.Add_MouseEnter({ $script:collapseAt = $null })
 $root.Add_MouseLeave({ if ($script:isExpanded) { $script:collapseAt = [DateTime]::UtcNow.AddSeconds(4) } })
