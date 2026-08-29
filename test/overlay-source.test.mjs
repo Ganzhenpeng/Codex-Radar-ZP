@@ -12,6 +12,9 @@ test("浮窗提供 12 套可持久化皮肤", () => {
   ]);
   assert.match(source, /skin = \$script:skins\[\$script:skinIndex\]\.Key/);
   assert.match(source, /\$compactPanel\.Add_MouseRightButtonDown/);
+  for (const layer of ["CompactBand", "CompactCore", "CompactPercentBadge", "CompactSkinMark"]) {
+    assert.match(source, new RegExp(`x:Name="${layer}"`), `${layer} skin layer missing`);
+  }
 });
 
 test("小圆球按剩余额度绘制圆环", () => {
@@ -20,12 +23,13 @@ test("小圆球按剩余额度绘制圆环", () => {
   assert.match(source, /Set-CompactQuotaArc \$compactRemaining/);
 });
 
-test("周额度文字承接额度详情入口，Tibo 使用单行紧凑格式", () => {
+test("周额度文字承接额度详情入口，Tibo 发帖和预测分两行", () => {
   assert.match(source, /x:Name="WeeklyUsageButton"/);
   assert.match(source, /\$weeklyUsageButton\.Add_Click\(\{ Start-Process 'http:\/\/127\.0\.0\.1:43721\/usage\.html' \}\)/);
   assert.doesNotMatch(source, /x:Name="UsageButton"/);
-  assert.doesNotMatch(source, /TiboForecastLine/);
+  assert.match(source, /x:Name="TiboForecastLine"/);
+  assert.match(source, /\$postedAt = Format-BeijingShort \(\[string\]\$watch\.observedAt\)/);
   assert.match(source, /Format-BeijingShort/);
   assert.match(source, /\[char\]0xFF1A/);
-  assert.match(source, /77ya6aKE5rWL5pe26Ze0/, "活跃信号必须明确标注为预测时间");
+  assert.match(source, /57qm5ZGo5pel5LiK5Y2IM\+eCueWJjQ==/, "当前预测窗口应显示在第二行");
 });

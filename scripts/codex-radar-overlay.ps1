@@ -54,10 +54,16 @@ function Format-BeijingShort([string]$instant) {
         <Ellipse x:Name="CompactShell" Fill="#EA102538" Stroke="#FF65DFFF" StrokeThickness="2">
           <Ellipse.Effect><DropShadowEffect Color="#FF35D7FF" BlurRadius="12" ShadowDepth="0" Opacity="0.58"/></Ellipse.Effect>
         </Ellipse>
+        <Border x:Name="CompactBand" Width="54" Height="11" Background="#CC39C9E8" Opacity="0.72" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+          <Border.RenderTransform><RotateTransform Angle="-24"/></Border.RenderTransform>
+        </Border>
+        <Ellipse x:Name="CompactCore" Width="10" Height="10" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="9,9,0,0" Fill="#FFFF5CA8" Stroke="#CCFFFFFF" StrokeThickness="1" IsHitTestVisible="False"/>
         <Ellipse x:Name="CompactTrack" Margin="5" Fill="Transparent" Stroke="#665FDFFF" StrokeThickness="4"/>
         <Path x:Name="CompactQuotaArc" Fill="Transparent" Stroke="#FF65DFFF" StrokeThickness="4" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-        <TextBlock x:Name="CompactSkinGlyph" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" Foreground="#99B7F3FF" FontFamily="Segoe UI Symbol" FontSize="28" FontWeight="Bold" TextAlignment="Center" IsHitTestVisible="False"/>
+        <TextBlock x:Name="CompactSkinGlyph" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,4,0,0" Background="Transparent" Foreground="#FFB7F3FF" FontFamily="Segoe UI Symbol" FontSize="15" FontWeight="Bold" TextAlignment="Center" IsHitTestVisible="False"/>
+        <Border x:Name="CompactPercentBadge" Width="43" Height="23" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#E6101C28" BorderBrush="#99FFFFFF" BorderThickness="1" CornerRadius="12" IsHitTestVisible="False"/>
         <TextBlock x:Name="CompactPercentLine" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" Foreground="#FFFFFFFF" FontSize="16" FontWeight="Bold" TextAlignment="Center"/>
+        <TextBlock x:Name="CompactSkinMark" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,3" Background="Transparent" Foreground="#FFFFFFFF" FontFamily="Segoe UI" FontSize="7" FontWeight="Bold" TextAlignment="Center" IsHitTestVisible="False"/>
       </Grid>
       <Grid x:Name="ExpandedPanel" Margin="5" Visibility="Collapsed">
       <Grid.Resources>
@@ -107,12 +113,15 @@ function Format-BeijingShort([string]$instant) {
         </Grid>
       </StackPanel>
       <TextBlock x:Name="UnavailableLine" Grid.Row="2" Margin="0,5,18,0" FontSize="12" FontWeight="Bold" Foreground="#FFFFFFFF" Visibility="Collapsed"/>
-      <Grid Grid.Row="3" Margin="0,6,0,0">
-        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-        <TextBlock x:Name="TiboTimeLine" Grid.Column="0" Foreground="#FFFFFFFF" FontSize="11.5" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
-        <Button x:Name="TiboDetailButton" Grid.Column="1" Margin="7,0,0,0" Padding="3,1" Background="#C0152639" BorderBrush="#5D91FFE2" BorderThickness="1" Foreground="#FF91FFE2" FontSize="11.5" FontWeight="Bold"><Button.Effect><DropShadowEffect Color="#FF000000" BlurRadius="4" ShadowDepth="1" Opacity="0.95"/></Button.Effect></Button>
-        <Button x:Name="SkinButton" Grid.Column="2" Margin="5,0,0,0" Padding="3,1" Background="#C0152639" BorderBrush="#5D8FEAFF" BorderThickness="1" Foreground="#FF8FEAFF" FontSize="11.5" FontWeight="Bold"><Button.Effect><DropShadowEffect Color="#FF000000" BlurRadius="4" ShadowDepth="1" Opacity="0.95"/></Button.Effect></Button>
-      </Grid>
+      <StackPanel Grid.Row="3" Margin="0,6,0,0">
+        <TextBlock x:Name="TiboTimeLine" Foreground="#FFFFFFFF" FontSize="11.5" FontWeight="Bold" TextWrapping="NoWrap"/>
+        <Grid>
+          <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+          <TextBlock x:Name="TiboForecastLine" Grid.Column="0" Margin="0,3,0,0" Foreground="#FFFFE1A1" FontSize="11" FontWeight="Bold" TextWrapping="NoWrap"/>
+          <Button x:Name="TiboDetailButton" Grid.Column="1" Margin="7,0,0,0" Padding="3,1" Background="#C0152639" BorderBrush="#5D91FFE2" BorderThickness="1" Foreground="#FF91FFE2" FontSize="11.5" FontWeight="Bold"><Button.Effect><DropShadowEffect Color="#FF000000" BlurRadius="4" ShadowDepth="1" Opacity="0.95"/></Button.Effect></Button>
+          <Button x:Name="SkinButton" Grid.Column="2" Margin="5,0,0,0" Padding="3,1" Background="#C0152639" BorderBrush="#5D8FEAFF" BorderThickness="1" Foreground="#FF8FEAFF" FontSize="11.5" FontWeight="Bold"><Button.Effect><DropShadowEffect Color="#FF000000" BlurRadius="4" ShadowDepth="1" Opacity="0.95"/></Button.Effect></Button>
+        </Grid>
+      </StackPanel>
       <Button x:Name="CloseButton" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" Panel.ZIndex="2" Width="18" Height="18" Margin="4,-2,-2,0" Content="x" FontFamily="Segoe UI" FontSize="11" FontWeight="Bold" Foreground="#FFFFFFFF" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" ToolTip="Close for this Codex session"><Button.Effect><DropShadowEffect Color="#FF000000" BlurRadius="4" ShadowDepth="1" Opacity="0.95"/></Button.Effect></Button>
       </Grid>
     </Grid>
@@ -125,10 +134,14 @@ $window = [Windows.Markup.XamlReader]::Load($reader)
 $root = $window.FindName('Root')
 $compactPanel = $window.FindName('CompactPanel')
 $compactShell = $window.FindName('CompactShell')
+$compactBand = $window.FindName('CompactBand')
+$compactCore = $window.FindName('CompactCore')
 $compactTrack = $window.FindName('CompactTrack')
 $compactQuotaArc = $window.FindName('CompactQuotaArc')
 $compactSkinGlyph = $window.FindName('CompactSkinGlyph')
+$compactPercentBadge = $window.FindName('CompactPercentBadge')
 $compactPercentLine = $window.FindName('CompactPercentLine')
+$compactSkinMark = $window.FindName('CompactSkinMark')
 $expandedPanel = $window.FindName('ExpandedPanel')
 $closeButton = $window.FindName('CloseButton')
 $mainPanel = $window.FindName('MainPanel')
@@ -143,6 +156,7 @@ $weeklyPaceLine = $window.FindName('WeeklyPaceLine')
 $weeklyPaceMarker = $window.FindName('WeeklyPaceMarker')
 $unavailableLine = $window.FindName('UnavailableLine')
 $tiboTimeLine = $window.FindName('TiboTimeLine')
+$tiboForecastLine = $window.FindName('TiboForecastLine')
 $tiboDetailButton = $window.FindName('TiboDetailButton')
 $skinButton = $window.FindName('SkinButton')
 $mainMeterSegments = @(1..6 | ForEach-Object { $window.FindName(('MainMeter{0:D2}' -f $_)) })
@@ -155,6 +169,8 @@ $weeklyUsageButton.ToolTip = TextFrom64 '54K55Ye75omT5byA6aKd5bqm5oC76KeI'
 $unavailableLine.Text = TextFrom64 '5Liq5Lq66aKd5bqm5pqC5LiN5Y+v6K+7'
 $tiboDetailButton.Content = TextFrom64 '6K+m5oOF'
 $skinButton.Content = TextFrom64 '5o2i6IKk'
+$tiboTimeLine.ToolTip = TextFrom64 '56ys5LiJ5pa56aKE5rWL77yM5LiN5piv5a6Y5pa55om/6K+6'
+$tiboForecastLine.ToolTip = $tiboTimeLine.ToolTip
 $closeButton.ToolTip = TextFrom64 '5YWz6Zet5pys5qyh5pi+56S6'
 
 $script:closedForCurrentProcess = $null
@@ -165,19 +181,22 @@ $script:expandedHeight = 166
 $script:collapseAt = $null
 $script:skinIndex = 0
 $script:skins = @(
-  [pscustomobject]@{ Key='digi-egg'; Name64='5pWw56CB6JuL'; Glyph64='4peI'; Shell='#EE102B3D'; Border='#FF66E4FF'; Track='#553B6B80'; Arc='#FF66E4FF'; Text='#FFFFFFFF'; Glyph='#8896F6FF'; Shadow='#FF31CBFF'; GlyphSize=29 },
-  [pscustomobject]@{ Key='dragon-orb'; Name64='5Zub5pif6b6Z54+g'; Glyph64='4piF4piF4piF4piF'; Shell='#F0E87918'; Border='#FFFFB12E'; Track='#66FFD08A'; Arc='#FFFFE16C'; Text='#FF281406'; Glyph='#D9C81919'; Shadow='#FFFF7A1A'; GlyphSize=10 },
-  [pscustomobject]@{ Key='cyber-core'; Name64='6LWb5Y2a5qC45b+D'; Glyph64='4pym'; Shell='#F00A1523'; Border='#FF00F5C8'; Track='#55486A80'; Arc='#FF00F5C8'; Text='#FFFFFFFF'; Glyph='#9938BDF8'; Shadow='#FF00F5C8'; GlyphSize=32 },
-  [pscustomobject]@{ Key='pixel-slime'; Name64='5YOP57Sg5Y+y6I6x5aeG'; Glyph64='4peP'; Shell='#EF173D35'; Border='#FF69F0A8'; Track='#5550A783'; Arc='#FF9BFF7A'; Text='#FFFFFFFF'; Glyph='#8876F7C0'; Shadow='#FF58E799'; GlyphSize=30 },
-  [pscustomobject]@{ Key='magic-planet'; Name64='6a2U5rOV5pif55CD'; Glyph64='4pyn'; Shell='#F02A1746'; Border='#FFC799FF'; Track='#556E4B88'; Arc='#FFFF8DEB'; Text='#FFFFFFFF'; Glyph='#99D8B4FF'; Shadow='#FFB46CFF'; GlyphSize=32 },
-  [pscustomobject]@{ Key='steam-gear'; Name64='6JK45rG96b2/6L2u'; Glyph64='4pqZ'; Shell='#F0372D25'; Border='#FFD7AA67'; Track='#556D5A43'; Arc='#FFFFC46E'; Text='#FFFFF6E8'; Glyph='#99E2BD84'; Shadow='#FFAD7439'; GlyphSize=29 },
-  [pscustomobject]@{ Key='deep-drop'; Name64='5rex5rW35rC05ru0'; Glyph64='4peG'; Shell='#F0082843'; Border='#FF58BFFF'; Track='#55436D8C'; Arc='#FF66E4FF'; Text='#FFFFFFFF'; Glyph='#8869B8FF'; Shadow='#FF2A8BFF'; GlyphSize=30 },
-  [pscustomobject]@{ Key='lava-sun'; Name64='54aU5bKp5aSq6Ziz'; Glyph64='4piA'; Shell='#F046160B'; Border='#FFFF6A2A'; Track='#557A3A28'; Arc='#FFFFD24C'; Text='#FFFFFFFF'; Glyph='#99FF9A36'; Shadow='#FFFF4C20'; GlyphSize=31 },
-  [pscustomobject]@{ Key='moon-cat'; Name64='5pyI5YWJ54yr55y8'; Glyph64='4peJ'; Shell='#F00F1734'; Border='#FF9AB8FF'; Track='#554B5D91'; Arc='#FFD9E5FF'; Text='#FFFFFFFF'; Glyph='#99A98AFF'; Shadow='#FF7D8FFF'; GlyphSize=31 },
-  [pscustomobject]@{ Key='quantum-hole'; Name64='6YeP5a2Q6buR5rSe'; Glyph64='4peO'; Shell='#F0040710'; Border='#FF9D72FF'; Track='#55432E69'; Arc='#FF43E7FF'; Text='#FFFFFFFF'; Glyph='#99C145FF'; Shadow='#FF733CFF'; GlyphSize=32 },
-  [pscustomobject]@{ Key='rainbow-candy'; Name64='5b2p6Jm557OW55CD'; Glyph64='4pym'; Shell='#F0392543'; Border='#FFFF89C8'; Track='#555C4E72'; Arc='#FF78E8FF'; Text='#FFFFFFFF'; Glyph='#99FFD36B'; Shadow='#FFFF71CB'; GlyphSize=31 },
-  [pscustomobject]@{ Key='space-pod'; Name64='5aSq56m66Iix'; Glyph64='4qyh'; Shell='#F012202D'; Border='#FF93B7CC'; Track='#55445C69'; Arc='#FFB8F2FF'; Text='#FFFFFFFF'; Glyph='#8898C7D9'; Shadow='#FF6CBEDB'; GlyphSize=29 }
+  [pscustomobject]@{ Key='digi-egg'; Name64='5pWw56CB6JuL'; Glyph64='4peI'; Mark='DIGI'; Shell='#F00B334A'; Border='#FF66E4FF'; Track='#77456F83'; Arc='#FFFFFFFF'; Text='#FFFFFFFF'; Glyph='#FFFFE56A'; Band='#E639D3F3'; Core='#FFFF4AA2'; Badge='#EC10202C'; MarkColor='#FF9DF4FF'; Shadow='#FF31CBFF'; GlyphSize=17; Angle=-28 },
+  [pscustomobject]@{ Key='dragon-orb'; Name64='5Zub5pif6b6Z54+g'; Glyph64='4piF4piF4piF4piF'; Mark='4 STAR'; Shell='#F0F28A16'; Border='#FFFFD044'; Track='#88FFE29A'; Arc='#FFFFFFFF'; Text='#FF2B1100'; Glyph='#FFE11B22'; Band='#D9FFB02A'; Core='#FFE11B22'; Badge='#EFFFF1C7'; MarkColor='#FF7A1A00'; Shadow='#FFFF6A19'; GlyphSize=10; Angle=20 },
+  [pscustomobject]@{ Key='cyber-core'; Name64='6LWb5Y2a5qC45b+D'; Glyph64='4pym'; Mark='CYBER'; Shell='#F006101B'; Border='#FF00F5C8'; Track='#77506B79'; Arc='#FFFFFFFF'; Text='#FFFFFFFF'; Glyph='#FFFF2BD6'; Band='#D900F5C8'; Core='#FF4BA3FF'; Badge='#EC07131D'; MarkColor='#FF6BFFE5'; Shadow='#FF00F5C8'; GlyphSize=19; Angle=-18 },
+  [pscustomobject]@{ Key='pixel-slime'; Name64='5YOP57Sg5Y+y6I6x5aeG'; Glyph64='4peP'; Mark='SLIME'; Shell='#F01D7549'; Border='#FFA6FF78'; Track='#7773C995'; Arc='#FFFFFFFF'; Text='#FF102B18'; Glyph='#FFFFFFFF'; Band='#D969F0A8'; Core='#FFFFF06A'; Badge='#E9D8FFD0'; MarkColor='#FFFFFFFF'; Shadow='#FF43E785'; GlyphSize=18; Angle=10 },
+  [pscustomobject]@{ Key='magic-planet'; Name64='6a2U5rOV5pif55CD'; Glyph64='4pyn'; Mark='MAGIC'; Shell='#F0441B72'; Border='#FFFF94E9'; Track='#777D5BA0'; Arc='#FFFFFFFF'; Text='#FFFFFFFF'; Glyph='#FFFFE56A'; Band='#D9C06CFF'; Core='#FF72EEFF'; Badge='#EC28113E'; MarkColor='#FFFFB8EF'; Shadow='#FFE75CFF'; GlyphSize=20; Angle=-35 },
+  [pscustomobject]@{ Key='steam-gear'; Name64='6JK45rG96b2/6L2u'; Glyph64='4pqZ'; Mark='STEAM'; Shell='#F04C3321'; Border='#FFFFC86B'; Track='#778B704F'; Arc='#FFFFFFFF'; Text='#FFFFF4D9'; Glyph='#FFFFD790'; Band='#D99A6134'; Core='#FF63D1C5'; Badge='#ED241B15'; MarkColor='#FFFFDDA2'; Shadow='#FFB87737'; GlyphSize=19; Angle=32 },
+  [pscustomobject]@{ Key='deep-drop'; Name64='5rex5rW35rC05ru0'; Glyph64='4peG'; Mark='DEEP'; Shell='#F006396B'; Border='#FF61D8FF'; Track='#77568DB8'; Arc='#FFFFFFFF'; Text='#FFFFFFFF'; Glyph='#FF9CE8FF'; Band='#D92E91E6'; Core='#FFFFFFFF'; Badge='#EC062A48'; MarkColor='#FFB8F2FF'; Shadow='#FF208FFF'; GlyphSize=19; Angle=-20 },
+  [pscustomobject]@{ Key='lava-sun'; Name64='54aU5bKp5aSq6Ziz'; Glyph64='4piA'; Mark='LAVA'; Shell='#F0731B08'; Border='#FFFFCC3C'; Track='#77C25725'; Arc='#FFFFFFFF'; Text='#FF321000'; Glyph='#FFFFE86B'; Band='#E5FF4A16'; Core='#FFFFFFFF'; Badge='#EDFDD469'; MarkColor='#FFFFF0AF'; Shadow='#FFFF451D'; GlyphSize=20; Angle=24 },
+  [pscustomobject]@{ Key='moon-cat'; Name64='5pyI5YWJ54yr55y8'; Glyph64='4peJ'; Mark='MOON'; Shell='#F0121D52'; Border='#FFC7D7FF'; Track='#7762779F'; Arc='#FFFFFFFF'; Text='#FFFFFFFF'; Glyph='#FFFFF3A8'; Band='#D97680DB'; Core='#FF89F0FF'; Badge='#EC111936'; MarkColor='#FFDCE6FF'; Shadow='#FF7B8FFF'; GlyphSize=20; Angle=-14 },
+  [pscustomobject]@{ Key='quantum-hole'; Name64='6YeP5a2Q6buR5rSe'; Glyph64='4peO'; Mark='Q-BIT'; Shell='#F0010208'; Border='#FFAD72FF'; Track='#775B3D83'; Arc='#FFFFFFFF'; Text='#FFFFFFFF'; Glyph='#FF4FE8FF'; Band='#D9742CFF'; Core='#FFFF4FD8'; Badge='#EF06030E'; MarkColor='#FFCDA8FF'; Shadow='#FF7B38FF'; GlyphSize=20; Angle=42 },
+  [pscustomobject]@{ Key='rainbow-candy'; Name64='5b2p6Jm557OW55CD'; Glyph64='4pym'; Mark='CANDY'; Shell='#F0D62F83'; Border='#FFFFD6EC'; Track='#77FF9FCD'; Arc='#FFFFFFFF'; Text='#FF4A1130'; Glyph='#FFFFF36B'; Band='#E573E7FF'; Core='#FF72FFA8'; Badge='#F0FFE3F1'; MarkColor='#FFFFFFFF'; Shadow='#FFFF4FA3'; GlyphSize=20; Angle=-33 },
+  [pscustomobject]@{ Key='space-pod'; Name64='5aSq56m66Iix'; Glyph64='4qyh'; Mark='SPACE'; Shell='#F02D3D49'; Border='#FFC1F2FF'; Track='#77738D9A'; Arc='#FFFFFFFF'; Text='#FFFFFFFF'; Glyph='#FFBDF7FF'; Band='#D95E7C91'; Core='#FFFFA83E'; Badge='#EC17232C'; MarkColor='#FFD8F8FF'; Shadow='#FF6CC9E8'; GlyphSize=19; Angle=16 }
 )
+$script:tiboForecastOverrides = @{
+  'b78bc848b558a5353254' = '57qm5ZGo5pel5LiK5Y2IM+eCueWJjQ=='
+}
 
 function ConvertTo-Brush([string]$value) {
   return (New-Object Windows.Media.BrushConverter).ConvertFromString($value)
@@ -187,12 +206,19 @@ function Apply-Skin {
   $skin = $script:skins[$script:skinIndex]
   $compactShell.Fill = ConvertTo-Brush $skin.Shell
   $compactShell.Stroke = ConvertTo-Brush $skin.Border
+  $compactBand.Background = ConvertTo-Brush $skin.Band
+  $compactBand.RenderTransform.Angle = [double]$skin.Angle
+  $compactCore.Fill = ConvertTo-Brush $skin.Core
   $compactTrack.Stroke = ConvertTo-Brush $skin.Track
   $compactQuotaArc.Stroke = ConvertTo-Brush $skin.Arc
+  $compactPercentBadge.Background = ConvertTo-Brush $skin.Badge
+  $compactPercentBadge.BorderBrush = ConvertTo-Brush $skin.Border
   $compactPercentLine.Foreground = ConvertTo-Brush $skin.Text
   $compactSkinGlyph.Foreground = ConvertTo-Brush $skin.Glyph
   $compactSkinGlyph.FontSize = [double]$skin.GlyphSize
   $compactSkinGlyph.Text = TextFrom64 $skin.Glyph64
+  $compactSkinMark.Foreground = ConvertTo-Brush $skin.MarkColor
+  $compactSkinMark.Text = [string]$skin.Mark
   $compactShell.Effect.Color = [Windows.Media.ColorConverter]::ConvertFromString($skin.Shadow)
   $skinName = TextFrom64 $skin.Name64
   $skinButton.ToolTip = "$(TextFrom64 '5b2T5YmN55qu6IKk77ya')$skinName · $(TextFrom64 '54K55Ye75Iqk5o2i6IKk')"
@@ -410,11 +436,16 @@ function Update-Overlay {
     }
     $watch = $state.public.activeWatch
     if ($null -ne $watch) {
+      $postedAt = Format-BeijingShort ([string]$watch.observedAt)
       $deadlineAt = Format-BeijingShort ([string]$watch.expiresAt)
-      $timeLabel = if ($deadlineAt) { $deadlineAt } else { TextFrom64 '5b6F5a6a' }
-      $tiboTimeLine.Text = "$(TextFrom64 'VGlib+mHjee9ru+8iA==')$timeLabel$(TextFrom64 '77yJ')$(TextFrom64 '77ya6aKE5rWL5pe26Ze0')"
+      $timeLabel = if ($postedAt) { $postedAt } else { TextFrom64 '5b6F5a6a' }
+      $tiboTimeLine.Text = "$(TextFrom64 'VGlib+mHjee9ru+8iA==')$timeLabel$(TextFrom64 '77yJ')"
+      $override = $script:tiboForecastOverrides[[string]$watch.id]
+      $tiboForecastLine.Text = if ($override) { TextFrom64 $override } elseif ($deadlineAt) { "$(TextFrom64 '57qm')$deadlineAt$(TextFrom64 '5YmN')" } else { TextFrom64 '6aKE5rWL5pe26Ze05b6F5a6a' }
+      $script:expandedHeight += 20
     } else {
       $tiboTimeLine.Text = "$(TextFrom64 'VGlib+mHjee9ru+8iA==')$(TextFrom64 '5peg')$(TextFrom64 '77yJ')"
+      $tiboForecastLine.Text = ''
     }
   } catch {
     Set-QuotaPanel $mainPanel $mainPercentLine $mainResetLine $mainMeterSegments $null '#FF65DFFF' | Out-Null
@@ -423,6 +454,7 @@ function Update-Overlay {
     $weeklyPaceMarker.Margin = New-Object Windows.Thickness(80, 0, 0, 0)
     $unavailableLine.Visibility = [Windows.Visibility]::Visible
     $tiboTimeLine.Text = "$(TextFrom64 'VGlib+mHjee9ru+8iA==')$(TextFrom64 '5peg')$(TextFrom64 '77yJ')"
+    $tiboForecastLine.Text = ''
     $compactPercentLine.Text = [char]0x2014
     Set-CompactQuotaArc $null
     $script:expandedHeight = 86
