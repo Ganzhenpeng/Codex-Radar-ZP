@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const source = await readFile(new URL("../scripts/codex-radar-overlay.ps1", import.meta.url), "utf8");
+const installerSource = await readFile(new URL("../scripts/install-autostart.ps1", import.meta.url), "utf8");
 
 test("浮窗提供 12 套可持久化皮肤", () => {
   const names = [...source.matchAll(/Name64='([^']+)'/g)].map((match) => Buffer.from(match[1], "base64").toString("utf8"));
@@ -29,6 +30,16 @@ test("小圆球按剩余额度绘制圆环", () => {
   assert.match(source, /x:Name="CompactQuotaArc"/);
   assert.match(source, /\$compactRemaining = if \(\$null -ne \$compactBucket\) \{ \$compactBucket\.remainingPercent \}/);
   assert.match(source, /Set-CompactQuotaArc \$compactRemaining/);
+});
+
+test("自启动安装器会在当前登录会话立即启动并验证雷达", () => {
+  assert.match(installerSource, /function Test-RadarRuntime/);
+  assert.match(installerSource, /function Wait-RadarRuntime/);
+  assert.match(installerSource, /Start-ScheduledTask -TaskName \$name/);
+  assert.match(installerSource, /New-Object -ComObject Shell\.Application/);
+  assert.match(installerSource, /\$explorerShell\.ShellExecute\(\$startupShortcut, '', \$root, 'open', 0\)/, "Startup 后备启动应由 Explorer Shell 脱离 Codex 进程树");
+  assert.match(installerSource, /Invoke-WebRequest[\s\S]*?127\.0\.0\.1:43721\/healthz/);
+  assert.match(installerSource, /\$overlayScript/);
 });
 
 test("展开浮窗在远离后延时收起，小球下方显示 Tibo 预测上限倒计时", () => {

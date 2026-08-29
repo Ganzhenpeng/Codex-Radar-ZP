@@ -43,7 +43,7 @@ npm run check
 powershell -ExecutionPolicy Bypass -File .\scripts\install-autostart.ps1
 ```
 
-它优先建立当前用户登录时、低权限、隐藏窗口的 `Codex Reset Radar` 计划任务。若系统策略拒绝创建用户计划任务，脚本会改建当前用户 Startup 快捷方式。浮层仅在检测到 Codex 桌面窗口时显示；关闭 Codex 后等待，再次打开后恢复为小圆圈。停止服务或注销启动入口不会删除本机历史：
+它优先建立当前用户登录时、低权限、隐藏窗口的 `Codex Reset Radar` 计划任务。若系统策略拒绝创建用户计划任务，脚本会改建当前用户 Startup 快捷方式。安装器会立即启动并读回验证服务与浮窗，不需要等到下次 Windows 登录。浮层仅在检测到 Codex 桌面窗口时显示；关闭 Codex 后守护进程继续等待，再次打开后恢复为小圆圈。停止服务或注销启动入口不会删除本机历史：
 
 ```powershell
 .\scripts\stop-radar.ps1
