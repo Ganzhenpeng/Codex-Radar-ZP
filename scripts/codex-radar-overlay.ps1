@@ -15,9 +15,15 @@ Add-Type @'
 using System;
 using System.Runtime.InteropServices;
 public static class CodexRadarNative {
+  [StructLayout(LayoutKind.Sequential)] public struct POINT {
+    public int X; public int Y;
+  }
   [StructLayout(LayoutKind.Sequential)] public struct RECT {
     public int Left; public int Top; public int Right; public int Bottom;
   }
+  [DllImport("user32.dll")]
+  [return: MarshalAs(UnmanagedType.Bool)]
+  public static extern bool GetCursorPos(out POINT point);
   [DllImport("user32.dll", SetLastError=true)]
   [return: MarshalAs(UnmanagedType.Bool)]
   public static extern bool GetWindowRect(IntPtr hWnd, out RECT rect);
@@ -525,6 +531,20 @@ function Collapse-Overlay {
   Apply-OverlayMode
 }
 
+function Test-CursorInsideOverlay {
+  try {
+    $handle = (New-Object Windows.Interop.WindowInteropHelper -ArgumentList $window).Handle
+    if ($handle -eq [IntPtr]::Zero) { return $root.IsMouseOver }
+    $cursor = New-Object CodexRadarNative+POINT
+    $bounds = New-Object CodexRadarNative+RECT
+    if (-not [CodexRadarNative]::GetCursorPos([ref]$cursor)) { return $root.IsMouseOver }
+    if (-not [CodexRadarNative]::GetWindowRect($handle, [ref]$bounds)) { return $root.IsMouseOver }
+    return $cursor.X -ge $bounds.Left -and $cursor.X -lt $bounds.Right -and $cursor.Y -ge $bounds.Top -and $cursor.Y -lt $bounds.Bottom
+  } catch {
+    return $root.IsMouseOver
+  }
+}
+
 function Save-OverlayPosition {
   try {
     $payload = [pscustomobject]@{ left = [Math]::Round($window.Left, 1); top = [Math]::Round($window.Top, 1); skin = $script:skins[$script:skinIndex].Key; savedAt = [DateTime]::UtcNow.ToString('o') }
@@ -750,7 +770,7 @@ $compactPanel.Add_MouseRightButtonDown({
   Show-SkinPicker $compactPanel
 })
 $root.Add_MouseLeave({
-  if ($script:isExpanded -and ($null -eq $script:skinPopup -or -not $script:skinPopup.IsOpen)) { Collapse-Overlay; Save-OverlayPosition }
+  if ($script:isExpanded -and ($null -eq $script:skinPopup -or -not $script:skinPopup.IsOpen) -and -not (Test-CursorInsideOverlay)) { Collapse-Overlay; Save-OverlayPosition }
 })
 $stateTimer = New-Object Windows.Threading.DispatcherTimer
 $stateTimer.Interval = [TimeSpan]::FromSeconds(20)

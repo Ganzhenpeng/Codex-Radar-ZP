@@ -42,6 +42,9 @@ test("展开浮窗离开即收起，小球下方显示 Tibo 预测上限倒计�
   assert.doesNotMatch(source, /x:Name="CompactTiboCaption"/, "小球下方不应堆叠额外说明");
   assert.match(source, /\$countdownTimer\.Interval = \[TimeSpan\]::FromMinutes\(1\)/, "倒计时应本地每分钟更新");
   assert.match(source, /\$root\.Add_MouseLeave\(\{[\s\S]*?Collapse-Overlay; Save-OverlayPosition[\s\S]*?\}\)/);
+  assert.match(source, /public static extern bool GetCursorPos\(out POINT point\)/, "应读取系统指针坐标");
+  assert.match(source, /function Test-CursorInsideOverlay/);
+  assert.match(source, /-and -not \(Test-CursorInsideOverlay\)/, "内部视图切换的假 MouseLeave 不应收起浮窗");
   assert.doesNotMatch(source, /AddSeconds\(4\)/, "离开不应再等待 4 秒");
   assert.doesNotMatch(source, /\$collapseTimer/, "不应保留延时收起计时器");
   assert.match(source, /\$compactTiboCountdownBadge\.BeginAnimation/, "倒计时标签应有脉冲效果");
