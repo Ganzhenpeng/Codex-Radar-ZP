@@ -31,7 +31,7 @@ test("小圆球按剩余额度绘制圆环", () => {
   assert.match(source, /Set-CompactQuotaArc \$compactRemaining/);
 });
 
-test("周额度文字承接额度详情入口，Tibo 发帖和预测分两行", () => {
+test("周额度文字承接额度详情入口，Tibo 栏与周额度统一排版", () => {
   assert.match(source, /x:Name="WeeklyUsageButton"/);
   assert.match(source, /\$weeklyUsageButton\.Add_Click\(\{ Start-Process 'http:\/\/127\.0\.0\.1:43721\/usage\.html' \}\)/);
   assert.doesNotMatch(source, /x:Name="UsageButton"/);
@@ -39,8 +39,16 @@ test("周额度文字承接额度详情入口，Tibo 发帖和预测分两行", 
   assert.match(source, /x:Name="TiboPanel" Grid.Row="2"/);
   assert.match(source, /x:Name="WeeklyPacePanel" Grid.Row="3"/, "使用速度应下移到 Tibo 信息之后");
   assert.match(source, /x:Name="WeeklyUsageButton"[^>]+FontSize="12\.5"/);
-  assert.match(source, /x:Name="TiboTimeLine" Foreground="#FFFFCF4A" FontSize="12\.5"/);
+  assert.match(source, /x:Name="TiboLabel" FontSize="12\.5" FontWeight="Bold" Foreground="#FFFFC766"/);
+  assert.match(source, /x:Name="TiboProbabilityLine"[^>]+FontSize="14\.5"[^>]+Foreground="#FFFFE1A1"/);
+  for (let index = 1; index <= 6; index += 1) {
+    assert.match(source, new RegExp(`x:Name="TiboMeter0${index}"`));
+  }
+  assert.match(source, /Set-QuotaMeter \$tiboMeterSegments \$probability '#FFFFD06B'/);
+  assert.match(source, /\$tiboProbabilityLine\.Text = if \(\$null -ne \$probability\)/);
+  assert.match(source, /VGlib\+eJqeeQhumHjee9rg==/, "标题应为 Tibo 物理重置");
   assert.match(source, /x:Name="WeeklyResetLine"[^>]+FontSize="12"/);
+  assert.match(source, /x:Name="TiboTimeLine"[^>]+FontSize="12"/);
   assert.match(source, /x:Name="TiboForecastLine"[^>]+FontSize="12"/);
   assert.match(source, /x:Name="TiboPanel" Grid.Row="2" Margin="0,11,0,0"/);
   assert.match(source, /\$postedAt = Format-BeijingDayShort \$watch\.observedAt/);
@@ -50,5 +58,6 @@ test("周额度文字承接额度详情入口，Tibo 发帖和预测分两行", 
   assert.doesNotMatch(source, /tiboDisplayOverrides/, "示例时间不得写死为事件覆盖");
   assert.match(source, /\$timeLabel = if \(\$postedAt\)/, "发表时间必须来自当前信号");
   assert.match(source, /\$forecastLabel = if \(\$deadlineAt\)/, "预测时间必须来自当前预测窗口");
-  assert.match(source, /VGlib\+mHjee9ru\+8iA==/, "标题应为 Tibo 重置");
+  assert.match(source, /\$tiboTimeLine\.Text = "\$\(TextFrom64 '5Y\+R6KGo'\) \$timeLabel"/, "发表时间必须单独显示");
+  assert.match(source, /\$\(TextFrom64 '6aKE5rWL'\) \$\(TextFrom64 '57qm'\)\$deadlineAt/, "预测重置时间必须单独显示");
 });

@@ -125,10 +125,22 @@ function Format-BeijingDayShort($instant) {
         <TextBlock x:Name="WeeklyResetLine" Margin="0,3,0,0" FontSize="12" FontWeight="Bold" Foreground="#FFFFFFFF" TextWrapping="NoWrap"/>
       </StackPanel>
       <StackPanel x:Name="TiboPanel" Grid.Row="2" Margin="0,11,0,0">
-        <TextBlock x:Name="TiboTimeLine" Foreground="#FFFFCF4A" FontSize="12.5" FontWeight="ExtraBold" TextWrapping="NoWrap"/>
-        <Grid Margin="0,3,0,0">
+        <Grid Margin="0,0,18,0">
+          <Grid.ColumnDefinitions><ColumnDefinition Width="82"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+          <TextBlock x:Name="TiboLabel" FontSize="12.5" FontWeight="Bold" Foreground="#FFFFC766" TextWrapping="NoWrap"/>
+          <Border Grid.Column="1" Height="9" Margin="2,2,0,0" Background="#41273F58" CornerRadius="5" Padding="2">
+            <UniformGrid Columns="6" Rows="1">
+              <Border x:Name="TiboMeter01" Margin="0,0,1,0" CornerRadius="2"/><Border x:Name="TiboMeter02" Margin="0,0,1,0" CornerRadius="2"/>
+              <Border x:Name="TiboMeter03" Margin="0,0,1,0" CornerRadius="2"/><Border x:Name="TiboMeter04" Margin="0,0,1,0" CornerRadius="2"/>
+              <Border x:Name="TiboMeter05" Margin="0,0,1,0" CornerRadius="2"/><Border x:Name="TiboMeter06" CornerRadius="2"/>
+            </UniformGrid>
+          </Border>
+          <TextBlock x:Name="TiboProbabilityLine" Grid.Column="2" Margin="7,0,0,0" FontSize="14.5" FontWeight="Bold" Foreground="#FFFFE1A1" TextWrapping="NoWrap"/>
+        </Grid>
+        <TextBlock x:Name="TiboTimeLine" Margin="0,3,0,0" Foreground="#FFFFFFFF" FontSize="12" FontWeight="Bold" TextWrapping="NoWrap"/>
+        <Grid Margin="0,2,0,0">
           <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-          <TextBlock x:Name="TiboForecastLine" Grid.Column="0" Margin="0,3,0,0" Foreground="#FFFFFFFF" FontSize="12" FontWeight="Bold" TextWrapping="NoWrap"/>
+          <TextBlock x:Name="TiboForecastLine" Grid.Column="0" Margin="0,2,0,0" Foreground="#FFFFFFFF" FontSize="12" FontWeight="Bold" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
           <Button x:Name="TiboDetailButton" Grid.Column="1" Margin="7,0,0,0" Padding="3,1" Background="#C0152639" BorderBrush="#5D91FFE2" BorderThickness="1" Foreground="#FF91FFE2" FontSize="11.5" FontWeight="Bold"><Button.Effect><DropShadowEffect Color="#FF000000" BlurRadius="4" ShadowDepth="1" Opacity="0.95"/></Button.Effect></Button>
           <Button x:Name="SkinButton" Grid.Column="2" Width="20" Margin="5,0,0,0" Padding="0" Background="#C0152639" BorderBrush="#5D8FEAFF" BorderThickness="1" Foreground="#FF8FEAFF" FontFamily="Segoe UI Symbol" FontSize="12" FontWeight="Bold"><Button.Effect><DropShadowEffect Color="#FF000000" BlurRadius="4" ShadowDepth="1" Opacity="0.95"/></Button.Effect></Button>
         </Grid>
@@ -179,22 +191,28 @@ $weeklyPaceLine = $window.FindName('WeeklyPaceLine')
 $weeklyPaceMarker = $window.FindName('WeeklyPaceMarker')
 $unavailableLine = $window.FindName('UnavailableLine')
 $tiboPanel = $window.FindName('TiboPanel')
+$tiboLabel = $window.FindName('TiboLabel')
+$tiboProbabilityLine = $window.FindName('TiboProbabilityLine')
 $tiboTimeLine = $window.FindName('TiboTimeLine')
 $tiboForecastLine = $window.FindName('TiboForecastLine')
 $tiboDetailButton = $window.FindName('TiboDetailButton')
 $skinButton = $window.FindName('SkinButton')
 $mainMeterSegments = @(1..6 | ForEach-Object { $window.FindName(('MainMeter{0:D2}' -f $_)) })
 $weeklyMeterSegments = @(1..6 | ForEach-Object { $window.FindName(('WeeklyMeter{0:D2}' -f $_)) })
+$tiboMeterSegments = @(1..6 | ForEach-Object { $window.FindName(('TiboMeter{0:D2}' -f $_)) })
 
 $closeButton.Content = [char]0x00D7
 $mainLabel.Text = TextFrom64 '5Li76aKd5bqm'
 $weeklyUsageButton.Content = TextFrom64 '5ZGo6aKd5bqm'
 $weeklyUsageButton.ToolTip = TextFrom64 '54K55Ye75omT5byA6aKd5bqm5oC76KeI'
+$tiboLabel.Text = TextFrom64 'VGlib+eJqeeQhumHjee9rg=='
 $unavailableLine.Text = TextFrom64 '5Liq5Lq66aKd5bqm5pqC5LiN5Y+v6K+7'
 $tiboDetailButton.Content = TextFrom64 '6K+m5oOF'
 $skinButton.Content = [char]0x2726
 $tiboTimeLine.ToolTip = TextFrom64 '56ys5LiJ5pa56aKE5rWL77yM5LiN5piv5a6Y5pa55om/6K+6'
 $tiboForecastLine.ToolTip = $tiboTimeLine.ToolTip
+$tiboLabel.ToolTip = $tiboTimeLine.ToolTip
+$tiboProbabilityLine.ToolTip = $tiboTimeLine.ToolTip
 $closeButton.ToolTip = TextFrom64 '5YWz6Zet5pys5qyh5pi+56S6'
 
 $script:closedForCurrentProcess = $null
@@ -645,22 +663,27 @@ function Update-Overlay {
     if ($hasWeekly) { Set-CurrentUsagePace $state.account.usagePace } else { $weeklyPacePanel.Visibility = [Windows.Visibility]::Collapsed; $weeklyPaceLine.Text = ''; $weeklyPaceMarker.Margin = New-Object Windows.Thickness(80, 0, 0, 0) }
     if (-not $hasMain -and -not $hasWeekly) {
       $unavailableLine.Visibility = [Windows.Visibility]::Visible
-      $script:expandedHeight = 86
+      $script:expandedHeight = 124
     } else {
       $unavailableLine.Visibility = [Windows.Visibility]::Collapsed
-      $script:expandedHeight = if ($hasMain -and $hasWeekly) { 188 } elseif ($hasWeekly) { 154 } else { 118 }
+      $script:expandedHeight = if ($hasMain -and $hasWeekly) { 218 } elseif ($hasWeekly) { 184 } else { 148 }
     }
     $watch = $state.public.activeWatch
     if ($null -ne $watch) {
       $postedAt = Format-BeijingDayShort $watch.observedAt
       $deadlineAt = Format-BeijingDayShort $watch.expiresAt
       $timeLabel = if ($postedAt) { $postedAt } else { TextFrom64 '5b6F5a6a' }
-      $tiboTimeLine.Text = "$(TextFrom64 'VGlib+mHjee9ru+8iA==')$timeLabel$(TextFrom64 '77yJ')"
-      $forecastLabel = if ($deadlineAt) { "$(TextFrom64 '57qm')$deadlineAt" } else { TextFrom64 '6aKE5rWL5pe26Ze05b6F5a6a' }
+      $probability = $null
+      try { if ($null -ne $watch.probability) { $probability = [Math]::Min(100, [Math]::Max(0, [double]$watch.probability)) } } catch { $probability = $null }
+      $tiboProbabilityLine.Text = if ($null -ne $probability) { "$([Math]::Round($probability))%" } else { [char]0x2014 }
+      Set-QuotaMeter $tiboMeterSegments $probability '#FFFFD06B'
+      $tiboTimeLine.Text = "$(TextFrom64 '5Y+R6KGo') $timeLabel"
+      $forecastLabel = if ($deadlineAt) { "$(TextFrom64 '6aKE5rWL') $(TextFrom64 '57qm')$deadlineAt" } else { TextFrom64 '6aKE5rWL5pe26Ze05b6F5a6a' }
       $tiboForecastLine.Text = $forecastLabel
-      $script:expandedHeight += 20
     } else {
-      $tiboTimeLine.Text = "$(TextFrom64 'VGlib+mHjee9ru+8iA==')$(TextFrom64 '5peg')$(TextFrom64 '77yJ')"
+      $tiboProbabilityLine.Text = TextFrom64 '5peg5L+h5Y+3'
+      Set-QuotaMeter $tiboMeterSegments $null '#FFFFD06B'
+      $tiboTimeLine.Text = "$(TextFrom64 '5Y+R6KGo') $(TextFrom64 '5b6F5a6a')"
       $tiboForecastLine.Text = ''
     }
   } catch {
@@ -670,11 +693,13 @@ function Update-Overlay {
     $weeklyPacePanel.Visibility = [Windows.Visibility]::Collapsed
     $weeklyPaceMarker.Margin = New-Object Windows.Thickness(80, 0, 0, 0)
     $unavailableLine.Visibility = [Windows.Visibility]::Visible
-    $tiboTimeLine.Text = "$(TextFrom64 'VGlib+mHjee9ru+8iA==')$(TextFrom64 '5peg')$(TextFrom64 '77yJ')"
+    $tiboProbabilityLine.Text = TextFrom64 '5peg5L+h5Y+3'
+    Set-QuotaMeter $tiboMeterSegments $null '#FFFFD06B'
+    $tiboTimeLine.Text = "$(TextFrom64 '5Y+R6KGo') $(TextFrom64 '5b6F5a6a')"
     $tiboForecastLine.Text = ''
     $compactPercentLine.Text = [char]0x2014
     Set-CompactQuotaArc $null
-    $script:expandedHeight = 86
+    $script:expandedHeight = 124
   }
   Show-NearTopRight
 }
