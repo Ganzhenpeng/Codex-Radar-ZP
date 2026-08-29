@@ -58,12 +58,12 @@ function Format-BeijingShort($instant) {
   } catch { return $null }
 }
 
-function Format-BeijingDayShort($instant) {
+function Format-BeijingMonthDayShort($instant) {
   try {
     $parsed = ConvertTo-DateTimeOffset $instant
     if ($null -eq $parsed) { return $null }
     $local = [TimeZoneInfo]::ConvertTime($parsed, $script:beijingTimeZone)
-    return "$($local.Day)$(TextFrom64 '5Y+3')$($local.ToString('HH:mm').Replace(':', [char]0xFF1A))"
+    return "$($local.ToString('MM-dd')) $($local.ToString('HH:mm').Replace(':', [char]0xFF1A))"
   } catch { return $null }
 }
 
@@ -140,9 +140,8 @@ function Format-BeijingDayShort($instant) {
         <TextBlock x:Name="WeeklyResetLine" Margin="0,3,0,0" FontSize="12" FontWeight="Bold" Foreground="#FFFFFFFF" TextWrapping="NoWrap"/>
       </StackPanel>
       <StackPanel x:Name="TiboPanel" Grid.Row="2" Margin="0,11,0,0">
-        <TextBlock x:Name="TiboLabel" FontSize="12.5" FontWeight="Bold" Foreground="#FFFFC766" TextWrapping="NoWrap"/>
-        <TextBlock x:Name="TiboTimeLine" Margin="0,3,0,0" Foreground="#FFFFFFFF" FontSize="12" FontWeight="Bold" TextWrapping="NoWrap"/>
-        <Grid Margin="0,2,0,0">
+        <TextBlock x:Name="TiboLabel" Margin="0,0,18,0" FontSize="12.5" FontWeight="Bold" Foreground="#FFFFC766" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+        <Grid Margin="0,3,0,0">
           <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
           <TextBlock x:Name="TiboForecastLine" Grid.Column="0" Margin="0,2,0,0" Foreground="#FFFFFFFF" FontSize="12" FontWeight="Bold" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
           <Button x:Name="TiboDetailButton" Grid.Column="1" Margin="7,0,0,0" Padding="3,1" Background="#C0152639" BorderBrush="#5D91FFE2" BorderThickness="1" Foreground="#FF91FFE2" FontSize="11.5" FontWeight="Bold"><Button.Effect><DropShadowEffect Color="#FF000000" BlurRadius="4" ShadowDepth="1" Opacity="0.95"/></Button.Effect></Button>
@@ -199,7 +198,6 @@ $weeklyPaceMarker = $window.FindName('WeeklyPaceMarker')
 $unavailableLine = $window.FindName('UnavailableLine')
 $tiboPanel = $window.FindName('TiboPanel')
 $tiboLabel = $window.FindName('TiboLabel')
-$tiboTimeLine = $window.FindName('TiboTimeLine')
 $tiboForecastLine = $window.FindName('TiboForecastLine')
 $tiboDetailButton = $window.FindName('TiboDetailButton')
 $skinButton = $window.FindName('SkinButton')
@@ -210,14 +208,12 @@ $closeButton.Content = [char]0x00D7
 $mainLabel.Text = TextFrom64 '5Li76aKd5bqm'
 $weeklyUsageButton.Content = TextFrom64 '5ZGo6aKd5bqm'
 $weeklyUsageButton.ToolTip = TextFrom64 '54K55Ye75omT5byA6aKd5bqm5oC76KeI'
-$tiboLabel.Text = TextFrom64 'VGlib+eJqeeQhumHjee9rg=='
 $compactTiboCountdownBadge.ToolTip = TextFrom64 'VGlib+eJqeeQhumHjee9ru+8iOesrOS4ieaWuemihOa1i++8ieacgOWkmuWJqeS9meaXtumXtA=='
 $unavailableLine.Text = TextFrom64 '5Liq5Lq66aKd5bqm5pqC5LiN5Y+v6K+7'
 $tiboDetailButton.Content = TextFrom64 '6K+m5oOF'
 $skinButton.Content = [char]0x2726
-$tiboTimeLine.ToolTip = TextFrom64 '56ys5LiJ5pa56aKE5rWL77yM5LiN5piv5a6Y5pa55om/6K+6'
-$tiboForecastLine.ToolTip = $tiboTimeLine.ToolTip
-$tiboLabel.ToolTip = $tiboTimeLine.ToolTip
+$tiboLabel.ToolTip = TextFrom64 '56ys5LiJ5pa56aKE5rWL77yM5LiN5piv5a6Y5pa55om/6K+6'
+$tiboForecastLine.ToolTip = $tiboLabel.ToolTip
 $closeButton.ToolTip = TextFrom64 '5YWz6Zet5pys5qyh5pi+56S6'
 
 $script:closedForCurrentProcess = $null
@@ -716,23 +712,23 @@ function Update-Overlay {
     if ($hasWeekly) { Set-CurrentUsagePace $state.account.usagePace } else { $weeklyPacePanel.Visibility = [Windows.Visibility]::Collapsed; $weeklyPaceLine.Text = ''; $weeklyPaceMarker.Margin = New-Object Windows.Thickness(80, 0, 0, 0) }
     if (-not $hasMain -and -not $hasWeekly) {
       $unavailableLine.Visibility = [Windows.Visibility]::Visible
-      $script:expandedHeight = 124
+      $script:expandedHeight = 106
     } else {
       $unavailableLine.Visibility = [Windows.Visibility]::Collapsed
-      $script:expandedHeight = if ($hasMain -and $hasWeekly) { 218 } elseif ($hasWeekly) { 184 } else { 148 }
+      $script:expandedHeight = if ($hasMain -and $hasWeekly) { 200 } elseif ($hasWeekly) { 166 } else { 130 }
     }
     $watch = $state.public.activeWatch
     if ($null -ne $watch) {
-      $postedAt = Format-BeijingDayShort $watch.observedAt
-      $deadlineAt = Format-BeijingDayShort $watch.expiresAt
+      $postedAt = Format-BeijingMonthDayShort $watch.observedAt
+      $deadlineAt = Format-BeijingMonthDayShort $watch.expiresAt
       $script:tiboForecastDeadline = ConvertTo-DateTimeOffset $watch.expiresAt
       $timeLabel = if ($postedAt) { $postedAt } else { TextFrom64 '5b6F5a6a' }
-      $tiboTimeLine.Text = "$(TextFrom64 '5Y+R6KGo') $timeLabel"
-      $forecastLabel = if ($deadlineAt) { "$(TextFrom64 '6aKE5rWL') $(TextFrom64 '57qm')$deadlineAt" } else { TextFrom64 '6aKE5rWL5pe26Ze05b6F5a6a' }
+      $tiboLabel.Text = "$(TextFrom64 'VGlib+eJqeeQhumHjee9rg==')$([char]0xFF1A)$timeLabel $(TextFrom64 '5Y+R6KGo')"
+      $forecastLabel = if ($deadlineAt) { "$(TextFrom64 '57qm') $deadlineAt $(TextFrom64 '6YeN572u')" } else { TextFrom64 '6aKE5rWL5pe26Ze05b6F5a6a' }
       $tiboForecastLine.Text = $forecastLabel
     } else {
       $script:tiboForecastDeadline = $null
-      $tiboTimeLine.Text = "$(TextFrom64 '5Y+R6KGo') $(TextFrom64 '5b6F5a6a')"
+      $tiboLabel.Text = "$(TextFrom64 'VGlib+eJqeeQhumHjee9rg==')$([char]0xFF1A)$(TextFrom64 '5peg')"
       $tiboForecastLine.Text = ''
     }
     Update-CompactTiboCountdown
@@ -744,12 +740,12 @@ function Update-Overlay {
     $weeklyPaceMarker.Margin = New-Object Windows.Thickness(80, 0, 0, 0)
     $unavailableLine.Visibility = [Windows.Visibility]::Visible
     $script:tiboForecastDeadline = $null
-    $tiboTimeLine.Text = "$(TextFrom64 '5Y+R6KGo') $(TextFrom64 '5b6F5a6a')"
+    $tiboLabel.Text = "$(TextFrom64 'VGlib+eJqeeQhumHjee9rg==')$([char]0xFF1A)$(TextFrom64 '5peg')"
     $tiboForecastLine.Text = ''
     $compactPercentLine.Text = [char]0x2014
     Set-CompactQuotaArc $null
     Update-CompactTiboCountdown
-    $script:expandedHeight = 124
+    $script:expandedHeight = 106
   }
   Show-NearTopRight
 }
