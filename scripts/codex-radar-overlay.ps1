@@ -32,19 +32,30 @@ function TextFrom64([string]$value) {
 $script:beijingTimeZone = [TimeZoneInfo]::FindSystemTimeZoneById('China Standard Time')
 $script:zhCulture = [Globalization.CultureInfo]::GetCultureInfo('zh-CN')
 
-function Format-BeijingShort([string]$instant) {
-  if ([string]::IsNullOrWhiteSpace($instant)) { return $null }
+function ConvertTo-DateTimeOffset($instant) {
+  if ($null -eq $instant -or [string]::IsNullOrWhiteSpace([string]$instant)) { return $null }
+  if ($instant -is [DateTimeOffset]) { return [DateTimeOffset]$instant }
+  if ($instant -is [DateTime]) { return [DateTimeOffset]([DateTime]$instant) }
   try {
-    $parsed = [DateTimeOffset]::Parse($instant, [Globalization.CultureInfo]::InvariantCulture)
+    return [DateTimeOffset]::Parse([string]$instant, [Globalization.CultureInfo]::InvariantCulture)
+  } catch {
+    try { return [DateTimeOffset]::Parse([string]$instant, [Globalization.CultureInfo]::CurrentCulture) } catch { return $null }
+  }
+}
+
+function Format-BeijingShort($instant) {
+  try {
+    $parsed = ConvertTo-DateTimeOffset $instant
+    if ($null -eq $parsed) { return $null }
     $local = [TimeZoneInfo]::ConvertTime($parsed, $script:beijingTimeZone)
     return "$($local.ToString('ddd', $script:zhCulture))$($local.ToString('HH:mm').Replace(':', [char]0xFF1A))"
   } catch { return $null }
 }
 
-function Format-BeijingDayShort([string]$instant) {
-  if ([string]::IsNullOrWhiteSpace($instant)) { return $null }
+function Format-BeijingDayShort($instant) {
   try {
-    $parsed = [DateTimeOffset]::Parse($instant, [Globalization.CultureInfo]::InvariantCulture)
+    $parsed = ConvertTo-DateTimeOffset $instant
+    if ($null -eq $parsed) { return $null }
     $local = [TimeZoneInfo]::ConvertTime($parsed, $script:beijingTimeZone)
     return "$($local.Day)$(TextFrom64 '5Y+3')$($local.ToString('HH:mm').Replace(':', [char]0xFF1A))"
   } catch { return $null }
@@ -193,7 +204,8 @@ $script:isExpanded = $false
 $script:expandedHeight = 166
 $script:collapseAt = $null
 $script:skinIndex = 0
-$script:skinMenu = $null
+$script:skinPopup = $null
+$script:skinButtons = @()
 $script:skins = @(
   [pscustomobject]@{ Key='digi-egg'; Name64='5pWw56CB6JuL'; Glyph64='4peI'; Mark='DIGI'; Shell='#F00B334A'; Border='#FF66E4FF'; Track='#77456F83'; Arc='#FFFFFFFF'; Text='#FFFFFFFF'; Glyph='#FFFFE56A'; Band='#E639D3F3'; Core='#FFFF4AA2'; Badge='#EC10202C'; MarkColor='#FF9DF4FF'; Shadow='#FF31CBFF'; GlyphSize=17; Angle=-28 },
   [pscustomobject]@{ Key='dragon-orb'; Name64='5Zub5pif6b6Z54+g'; Glyph64='4piF4piF4piF4piF'; Mark='4 STAR'; Shell='#F0F28A16'; Border='#FFFFD044'; Track='#88FFE29A'; Arc='#FFFFFFFF'; Text='#FF2B1100'; Glyph='#FFE11B22'; Band='#D9FFB02A'; Core='#FFE11B22'; Badge='#EFFFF1C7'; MarkColor='#FF7A1A00'; Shadow='#FFFF6A19'; GlyphSize=10; Angle=20 },
@@ -208,10 +220,6 @@ $script:skins = @(
   [pscustomobject]@{ Key='rainbow-candy'; Name64='5b2p6Jm557OW55CD'; Glyph64='4pym'; Mark='CANDY'; Shell='#F0D62F83'; Border='#FFFFD6EC'; Track='#77FF9FCD'; Arc='#FFFFFFFF'; Text='#FF4A1130'; Glyph='#FFFFF36B'; Band='#E573E7FF'; Core='#FF72FFA8'; Badge='#F0FFE3F1'; MarkColor='#FFFFFFFF'; Shadow='#FFFF4FA3'; GlyphSize=20; Angle=-33 },
   [pscustomobject]@{ Key='space-pod'; Name64='5aSq56m66Iix'; Glyph64='4qyh'; Mark='SPACE'; Shell='#F02D3D49'; Border='#FFC1F2FF'; Track='#77738D9A'; Arc='#FFFFFFFF'; Text='#FFFFFFFF'; Glyph='#FFBDF7FF'; Band='#D95E7C91'; Core='#FFFFA83E'; Badge='#EC17232C'; MarkColor='#FFD8F8FF'; Shadow='#FF6CC9E8'; GlyphSize=19; Angle=16 }
 )
-$script:tiboDisplayOverrides = @{
-  'b78bc848b558a5353254' = [pscustomobject]@{ Posted64='Mjflj7cxM++8mjM4'; Forecast64='57qmMjjlj7cxM++8mjAw' }
-}
-
 function ConvertTo-Brush([string]$value) {
   return (New-Object Windows.Media.BrushConverter).ConvertFromString($value)
 }
@@ -251,9 +259,13 @@ function Apply-Skin {
   $compactShell.Effect.Color = [Windows.Media.ColorConverter]::ConvertFromString($skin.Shadow)
   $skinName = TextFrom64 $skin.Name64
   $skinButton.ToolTip = "$(TextFrom64 '5b2T5YmN55qu6IKk77ya')$skinName · $(TextFrom64 '54K55Ye75Iqk5o2i6IKk')"
-  if ($null -ne $script:skinMenu) {
-    for ($index = 0; $index -lt $script:skinMenu.Items.Count; $index++) {
-      $script:skinMenu.Items[$index].IsChecked = $index -eq $script:skinIndex
+  if ($script:skinButtons.Count -gt 0) {
+    for ($index = 0; $index -lt $script:skinButtons.Count; $index++) {
+      $selected = $index -eq $script:skinIndex
+      $borderSize = if ($selected) { 2 } else { 1 }
+      $script:skinButtons[$index].BorderThickness = New-Object Windows.Thickness -ArgumentList $borderSize
+      $script:skinButtons[$index].BorderBrush = ConvertTo-Brush $(if ($selected) { $script:skins[$index].Border } else { '#FF3B5366' })
+      $script:skinButtons[$index].Background = ConvertTo-Brush $(if ($selected) { '#FF173249' } else { '#FF0B1721' })
     }
   }
 }
@@ -286,29 +298,152 @@ function Set-CompactQuotaArc($remainingPercent) {
   $compactQuotaArc.Data = $geometry
 }
 
-function Initialize-SkinMenu {
-  $menu = New-Object Windows.Controls.ContextMenu
+function New-SkinPreview($skin) {
+  $preview = New-Object Windows.Controls.Grid
+  $preview.Width = 46
+  $preview.Height = 46
+  $preview.HorizontalAlignment = [Windows.HorizontalAlignment]::Center
+  $clip = New-Object Windows.Media.EllipseGeometry
+  $clip.Center = New-Object Windows.Point -ArgumentList 23, 23
+  $clip.RadiusX = 22
+  $clip.RadiusY = 22
+  $preview.Clip = $clip
+
+  $shell = New-Object Windows.Shapes.Ellipse
+  $shell.Fill = ConvertTo-Brush $skin.Shell
+  $shell.Stroke = ConvertTo-Brush $skin.Border
+  $shell.StrokeThickness = 2
+  [void]$preview.Children.Add($shell)
+
+  $band = New-Object Windows.Controls.Border
+  $band.Width = 44
+  $band.Height = 8
+  $band.Background = ConvertTo-Brush $skin.Band
+  $band.Opacity = 0.86
+  $band.HorizontalAlignment = [Windows.HorizontalAlignment]::Center
+  $band.VerticalAlignment = [Windows.VerticalAlignment]::Center
+  $band.RenderTransformOrigin = New-Object Windows.Point -ArgumentList 0.5, 0.5
+  $band.RenderTransform = New-Object Windows.Media.RotateTransform -ArgumentList ([double]$skin.Angle)
+  [void]$preview.Children.Add($band)
+
+  $core = New-Object Windows.Shapes.Ellipse
+  $core.Width = 8
+  $core.Height = 8
+  $core.Margin = New-Object Windows.Thickness -ArgumentList 7, 7, 0, 0
+  $core.HorizontalAlignment = [Windows.HorizontalAlignment]::Left
+  $core.VerticalAlignment = [Windows.VerticalAlignment]::Top
+  $core.Fill = ConvertTo-Brush $skin.Core
+  $core.Stroke = ConvertTo-Brush '#CCFFFFFF'
+  $core.StrokeThickness = 1
+  [void]$preview.Children.Add($core)
+
+  $glyph = New-Object Windows.Controls.TextBlock
+  $glyph.Text = TextFrom64 $skin.Glyph64
+  $glyph.Foreground = ConvertTo-Brush $skin.Glyph
+  $glyph.FontFamily = New-Object Windows.Media.FontFamily 'Segoe UI Symbol'
+  $glyph.FontSize = [Math]::Min(15, [double]$skin.GlyphSize)
+  $glyph.FontWeight = [Windows.FontWeights]::Bold
+  $glyph.HorizontalAlignment = [Windows.HorizontalAlignment]::Center
+  $glyph.VerticalAlignment = [Windows.VerticalAlignment]::Top
+  $glyph.Margin = New-Object Windows.Thickness -ArgumentList 0, 2, 0, 0
+  [void]$preview.Children.Add($glyph)
+
+  $badge = New-Object Windows.Controls.Border
+  $badge.Width = 34
+  $badge.Height = 17
+  $badge.Background = ConvertTo-Brush $skin.Badge
+  $badge.BorderBrush = ConvertTo-Brush $skin.Border
+  $badge.BorderThickness = New-Object Windows.Thickness -ArgumentList 1
+  $badge.CornerRadius = New-Object Windows.CornerRadius -ArgumentList 9
+  $badge.HorizontalAlignment = [Windows.HorizontalAlignment]::Center
+  $badge.VerticalAlignment = [Windows.VerticalAlignment]::Center
+  [void]$preview.Children.Add($badge)
+
+  $percent = New-Object Windows.Controls.TextBlock
+  $percent.Text = '62%'
+  $percent.Foreground = ConvertTo-Brush $skin.Text
+  $percent.FontSize = 10
+  $percent.FontWeight = [Windows.FontWeights]::Bold
+  $percent.HorizontalAlignment = [Windows.HorizontalAlignment]::Center
+  $percent.VerticalAlignment = [Windows.VerticalAlignment]::Center
+  [void]$preview.Children.Add($percent)
+
+  $mark = New-Object Windows.Controls.TextBlock
+  $mark.Text = [string]$skin.Mark
+  $mark.Foreground = ConvertTo-Brush $skin.MarkColor
+  $mark.FontSize = 5.8
+  $mark.FontWeight = [Windows.FontWeights]::Bold
+  $mark.HorizontalAlignment = [Windows.HorizontalAlignment]::Center
+  $mark.VerticalAlignment = [Windows.VerticalAlignment]::Bottom
+  $mark.Margin = New-Object Windows.Thickness -ArgumentList 0, 0, 0, 2
+  [void]$preview.Children.Add($mark)
+
+  return $preview
+}
+
+function Initialize-SkinPicker {
+  $popup = New-Object Windows.Controls.Primitives.Popup
+  $popup.AllowsTransparency = $true
+  $popup.StaysOpen = $false
+  $popup.Placement = [Windows.Controls.Primitives.PlacementMode]::Bottom
+  $popup.Add_Opened({ $script:collapseAt = $null })
+  $popup.Add_Closed({ if ($script:isExpanded) { $script:collapseAt = [DateTime]::UtcNow.AddSeconds(4) } })
+
+  $frame = New-Object Windows.Controls.Border
+  $frame.Background = ConvertTo-Brush '#FA08131D'
+  $frame.BorderBrush = ConvertTo-Brush '#FF5B819B'
+  $frame.BorderThickness = New-Object Windows.Thickness -ArgumentList 1
+  $frame.CornerRadius = New-Object Windows.CornerRadius -ArgumentList 10
+  $frame.Padding = New-Object Windows.Thickness -ArgumentList 7
+  $frame.Effect = New-Object Windows.Media.Effects.DropShadowEffect
+  $frame.Effect.Color = [Windows.Media.Colors]::Black
+  $frame.Effect.BlurRadius = 16
+  $frame.Effect.Opacity = 0.8
+
+  $tiles = New-Object Windows.Controls.WrapPanel
+  $tiles.Width = 216
+  $script:skinButtons = @()
   for ($index = 0; $index -lt $script:skins.Count; $index++) {
-    $item = New-Object Windows.Controls.MenuItem
-    $item.Header = "$(TextFrom64 $script:skins[$index].Glyph64)  $(TextFrom64 $script:skins[$index].Name64)"
-    $item.Tag = $index
-    $item.IsCheckable = $true
-    $item.Add_Click({
+    $skin = $script:skins[$index]
+    $button = New-Object Windows.Controls.Button
+    $button.Width = 66
+    $button.Height = 76
+    $button.Margin = New-Object Windows.Thickness -ArgumentList 3
+    $button.Padding = New-Object Windows.Thickness -ArgumentList 4
+    $button.Tag = $index
+    $button.ToolTip = TextFrom64 $skin.Name64
+
+    $content = New-Object Windows.Controls.StackPanel
+    [void]$content.Children.Add((New-SkinPreview $skin))
+    $caption = New-Object Windows.Controls.TextBlock
+    $caption.Text = TextFrom64 $skin.Name64
+    $caption.Foreground = ConvertTo-Brush '#FFEAF7FF'
+    $caption.FontSize = 9.5
+    $caption.FontWeight = [Windows.FontWeights]::SemiBold
+    $caption.HorizontalAlignment = [Windows.HorizontalAlignment]::Center
+    $caption.Margin = New-Object Windows.Thickness -ArgumentList 0, 3, 0, 0
+    [void]$content.Children.Add($caption)
+    $button.Content = $content
+    $button.Add_Click({
       param($sender, $eventArgs)
       $script:skinIndex = [int]$sender.Tag
       Apply-Skin
       Save-OverlayPosition
+      $script:skinPopup.IsOpen = $false
     })
-    [void]$menu.Items.Add($item)
+    [void]$tiles.Children.Add($button)
+    $script:skinButtons += $button
   }
-  $script:skinMenu = $menu
+  $frame.Child = $tiles
+  $popup.Child = $frame
+  $script:skinPopup = $popup
 }
 
-function Show-SkinMenu($target) {
-  if ($null -eq $script:skinMenu) { Initialize-SkinMenu }
-  $script:skinMenu.PlacementTarget = $target
-  $script:skinMenu.Placement = [Windows.Controls.Primitives.PlacementMode]::Bottom
-  $script:skinMenu.IsOpen = $true
+function Show-SkinPicker($target) {
+  if ($null -eq $script:skinPopup) { Initialize-SkinPicker }
+  Apply-Skin
+  $script:skinPopup.PlacementTarget = $target
+  $script:skinPopup.IsOpen = $true
 }
 
 function Start-SkinAnimations {
@@ -517,12 +652,11 @@ function Update-Overlay {
     }
     $watch = $state.public.activeWatch
     if ($null -ne $watch) {
-      $postedAt = Format-BeijingDayShort ([string]$watch.observedAt)
-      $deadlineAt = Format-BeijingDayShort ([string]$watch.expiresAt)
-      $override = $script:tiboDisplayOverrides[[string]$watch.id]
-      $timeLabel = if ($override) { TextFrom64 $override.Posted64 } elseif ($postedAt) { $postedAt } else { TextFrom64 '5b6F5a6a' }
+      $postedAt = Format-BeijingDayShort $watch.observedAt
+      $deadlineAt = Format-BeijingDayShort $watch.expiresAt
+      $timeLabel = if ($postedAt) { $postedAt } else { TextFrom64 '5b6F5a6a' }
       $tiboTimeLine.Text = "$(TextFrom64 'VGlib+mHjee9ru+8iA==')$timeLabel$(TextFrom64 '77yJ')"
-      $forecastLabel = if ($override) { TextFrom64 $override.Forecast64 } elseif ($deadlineAt) { "$(TextFrom64 '57qm')$deadlineAt" } else { TextFrom64 '6aKE5rWL5pe26Ze05b6F5a6a' }
+      $forecastLabel = if ($deadlineAt) { "$(TextFrom64 '57qm')$deadlineAt" } else { TextFrom64 '6aKE5rWL5pe26Ze05b6F5a6a' }
       $tiboForecastLine.Text = $forecastLabel
       $script:expandedHeight += 20
     } else {
@@ -545,7 +679,7 @@ function Update-Overlay {
   Show-NearTopRight
 }
 
-Initialize-SkinMenu
+Initialize-SkinPicker
 Start-SkinAnimations
 
 $closeButton.Add_Click({
@@ -555,7 +689,7 @@ $closeButton.Add_Click({
 })
 $weeklyUsageButton.Add_Click({ Start-Process 'http://127.0.0.1:43721/usage.html' })
 $tiboDetailButton.Add_Click({ Start-Process 'http://127.0.0.1:43721/' })
-$skinButton.Add_Click({ Show-SkinMenu $skinButton })
+$skinButton.Add_Click({ Show-SkinPicker $skinButton })
 $root.Add_MouseLeftButtonDown({
   if (-not $closeButton.IsMouseOver -and -not $weeklyUsageButton.IsMouseOver -and -not $tiboDetailButton.IsMouseOver -and -not $skinButton.IsMouseOver) { try { $window.DragMove() } catch { } }
 })
@@ -564,7 +698,7 @@ $compactPanel.Add_MouseEnter({ Expand-Overlay })
 $compactPanel.Add_MouseRightButtonDown({
   param($sender, $eventArgs)
   $eventArgs.Handled = $true
-  Show-SkinMenu $compactPanel
+  Show-SkinPicker $compactPanel
 })
 $root.Add_MouseEnter({ $script:collapseAt = $null })
 $root.Add_MouseLeave({ if ($script:isExpanded) { $script:collapseAt = [DateTime]::UtcNow.AddSeconds(4) } })
