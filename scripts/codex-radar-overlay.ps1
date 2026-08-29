@@ -125,18 +125,7 @@ function Format-BeijingDayShort($instant) {
         <TextBlock x:Name="WeeklyResetLine" Margin="0,3,0,0" FontSize="12" FontWeight="Bold" Foreground="#FFFFFFFF" TextWrapping="NoWrap"/>
       </StackPanel>
       <StackPanel x:Name="TiboPanel" Grid.Row="2" Margin="0,11,0,0">
-        <Grid Margin="0,0,18,0">
-          <Grid.ColumnDefinitions><ColumnDefinition Width="82"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-          <TextBlock x:Name="TiboLabel" FontSize="12.5" FontWeight="Bold" Foreground="#FFFFC766" TextWrapping="NoWrap"/>
-          <Border Grid.Column="1" Height="9" Margin="2,2,0,0" Background="#41273F58" CornerRadius="5" Padding="2">
-            <UniformGrid Columns="6" Rows="1">
-              <Border x:Name="TiboMeter01" Margin="0,0,1,0" CornerRadius="2"/><Border x:Name="TiboMeter02" Margin="0,0,1,0" CornerRadius="2"/>
-              <Border x:Name="TiboMeter03" Margin="0,0,1,0" CornerRadius="2"/><Border x:Name="TiboMeter04" Margin="0,0,1,0" CornerRadius="2"/>
-              <Border x:Name="TiboMeter05" Margin="0,0,1,0" CornerRadius="2"/><Border x:Name="TiboMeter06" CornerRadius="2"/>
-            </UniformGrid>
-          </Border>
-          <TextBlock x:Name="TiboProbabilityLine" Grid.Column="2" Margin="7,0,0,0" FontSize="14.5" FontWeight="Bold" Foreground="#FFFFE1A1" TextWrapping="NoWrap"/>
-        </Grid>
+        <TextBlock x:Name="TiboLabel" FontSize="12.5" FontWeight="Bold" Foreground="#FFFFC766" TextWrapping="NoWrap"/>
         <TextBlock x:Name="TiboTimeLine" Margin="0,3,0,0" Foreground="#FFFFFFFF" FontSize="12" FontWeight="Bold" TextWrapping="NoWrap"/>
         <Grid Margin="0,2,0,0">
           <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
@@ -192,14 +181,12 @@ $weeklyPaceMarker = $window.FindName('WeeklyPaceMarker')
 $unavailableLine = $window.FindName('UnavailableLine')
 $tiboPanel = $window.FindName('TiboPanel')
 $tiboLabel = $window.FindName('TiboLabel')
-$tiboProbabilityLine = $window.FindName('TiboProbabilityLine')
 $tiboTimeLine = $window.FindName('TiboTimeLine')
 $tiboForecastLine = $window.FindName('TiboForecastLine')
 $tiboDetailButton = $window.FindName('TiboDetailButton')
 $skinButton = $window.FindName('SkinButton')
 $mainMeterSegments = @(1..6 | ForEach-Object { $window.FindName(('MainMeter{0:D2}' -f $_)) })
 $weeklyMeterSegments = @(1..6 | ForEach-Object { $window.FindName(('WeeklyMeter{0:D2}' -f $_)) })
-$tiboMeterSegments = @(1..6 | ForEach-Object { $window.FindName(('TiboMeter{0:D2}' -f $_)) })
 
 $closeButton.Content = [char]0x00D7
 $mainLabel.Text = TextFrom64 '5Li76aKd5bqm'
@@ -212,7 +199,6 @@ $skinButton.Content = [char]0x2726
 $tiboTimeLine.ToolTip = TextFrom64 '56ys5LiJ5pa56aKE5rWL77yM5LiN5piv5a6Y5pa55om/6K+6'
 $tiboForecastLine.ToolTip = $tiboTimeLine.ToolTip
 $tiboLabel.ToolTip = $tiboTimeLine.ToolTip
-$tiboProbabilityLine.ToolTip = $tiboTimeLine.ToolTip
 $closeButton.ToolTip = TextFrom64 '5YWz6Zet5pys5qyh5pi+56S6'
 
 $script:closedForCurrentProcess = $null
@@ -673,16 +659,10 @@ function Update-Overlay {
       $postedAt = Format-BeijingDayShort $watch.observedAt
       $deadlineAt = Format-BeijingDayShort $watch.expiresAt
       $timeLabel = if ($postedAt) { $postedAt } else { TextFrom64 '5b6F5a6a' }
-      $probability = $null
-      try { if ($null -ne $watch.probability) { $probability = [Math]::Min(100, [Math]::Max(0, [double]$watch.probability)) } } catch { $probability = $null }
-      $tiboProbabilityLine.Text = if ($null -ne $probability) { "$([Math]::Round($probability))%" } else { [char]0x2014 }
-      Set-QuotaMeter $tiboMeterSegments $probability '#FFFFD06B'
       $tiboTimeLine.Text = "$(TextFrom64 '5Y+R6KGo') $timeLabel"
       $forecastLabel = if ($deadlineAt) { "$(TextFrom64 '6aKE5rWL') $(TextFrom64 '57qm')$deadlineAt" } else { TextFrom64 '6aKE5rWL5pe26Ze05b6F5a6a' }
       $tiboForecastLine.Text = $forecastLabel
     } else {
-      $tiboProbabilityLine.Text = TextFrom64 '5peg5L+h5Y+3'
-      Set-QuotaMeter $tiboMeterSegments $null '#FFFFD06B'
       $tiboTimeLine.Text = "$(TextFrom64 '5Y+R6KGo') $(TextFrom64 '5b6F5a6a')"
       $tiboForecastLine.Text = ''
     }
@@ -693,8 +673,6 @@ function Update-Overlay {
     $weeklyPacePanel.Visibility = [Windows.Visibility]::Collapsed
     $weeklyPaceMarker.Margin = New-Object Windows.Thickness(80, 0, 0, 0)
     $unavailableLine.Visibility = [Windows.Visibility]::Visible
-    $tiboProbabilityLine.Text = TextFrom64 '5peg5L+h5Y+3'
-    Set-QuotaMeter $tiboMeterSegments $null '#FFFFD06B'
     $tiboTimeLine.Text = "$(TextFrom64 '5Y+R6KGo') $(TextFrom64 '5b6F5a6a')"
     $tiboForecastLine.Text = ''
     $compactPercentLine.Text = [char]0x2014

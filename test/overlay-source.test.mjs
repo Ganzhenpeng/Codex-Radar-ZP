@@ -40,12 +40,8 @@ test("周额度文字承接额度详情入口，Tibo 栏与周额度统一排版
   assert.match(source, /x:Name="WeeklyPacePanel" Grid.Row="3"/, "使用速度应下移到 Tibo 信息之后");
   assert.match(source, /x:Name="WeeklyUsageButton"[^>]+FontSize="12\.5"/);
   assert.match(source, /x:Name="TiboLabel" FontSize="12\.5" FontWeight="Bold" Foreground="#FFFFC766"/);
-  assert.match(source, /x:Name="TiboProbabilityLine"[^>]+FontSize="14\.5"[^>]+Foreground="#FFFFE1A1"/);
-  for (let index = 1; index <= 6; index += 1) {
-    assert.match(source, new RegExp(`x:Name="TiboMeter0${index}"`));
-  }
-  assert.match(source, /Set-QuotaMeter \$tiboMeterSegments \$probability '#FFFFD06B'/);
-  assert.match(source, /\$tiboProbabilityLine\.Text = if \(\$null -ne \$probability\)/);
+  assert.doesNotMatch(source, /x:Name="TiboMeter\d+"/, "Tibo 预测不应伪装成额度进度");
+  assert.doesNotMatch(source, /x:Name="TiboProbabilityLine"/, "不在浮窗里显示误导性的预测进度数字");
   assert.match(source, /VGlib\+eJqeeQhumHjee9rg==/, "标题应为 Tibo 物理重置");
   assert.match(source, /x:Name="WeeklyResetLine"[^>]+FontSize="12"/);
   assert.match(source, /x:Name="TiboTimeLine"[^>]+FontSize="12"/);
