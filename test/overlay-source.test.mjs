@@ -28,8 +28,12 @@ test("周额度文字承接额度详情入口，Tibo 发帖和预测分两行", 
   assert.match(source, /\$weeklyUsageButton\.Add_Click\(\{ Start-Process 'http:\/\/127\.0\.0\.1:43721\/usage\.html' \}\)/);
   assert.doesNotMatch(source, /x:Name="UsageButton"/);
   assert.match(source, /x:Name="TiboForecastLine"/);
+  assert.match(source, /x:Name="TiboPanel" Grid.Row="2"/);
+  assert.match(source, /x:Name="WeeklyPacePanel" Grid.Row="3"/, "使用速度应下移到 Tibo 信息之后");
+  assert.match(source, /x:Name="TiboTimeLine" Foreground="#FFFFCF4A" FontSize="14"/);
   assert.match(source, /\$postedAt = Format-BeijingShort \(\[string\]\$watch\.observedAt\)/);
   assert.match(source, /Format-BeijingShort/);
   assert.match(source, /\[char\]0xFF1A/);
   assert.match(source, /57qm5ZGo5pel5LiK5Y2IM\+eCueWJjQ==/, "当前预测窗口应显示在第二行");
+  assert.match(source, /VGlib\+eJqeeQhumHjee9ru\+8iA==/, "标题应为 Tibo 物理重置");
 });

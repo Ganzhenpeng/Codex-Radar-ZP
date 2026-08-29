@@ -103,7 +103,18 @@ function Format-BeijingShort([string]$instant) {
           <TextBlock x:Name="WeeklyPercentLine" Grid.Column="2" Margin="7,0,0,0" FontSize="14.5" FontWeight="Bold" Foreground="#FFFFE1A1"/>
         </Grid>
         <TextBlock x:Name="WeeklyResetLine" Margin="0,3,0,0" FontSize="12" FontWeight="Bold" Foreground="#FFFFFFFF" TextWrapping="NoWrap"/>
-        <TextBlock x:Name="WeeklyPaceLine" Margin="0,4,0,0" FontSize="12.5" FontWeight="Bold" Foreground="#FFFFE1A1" TextTrimming="CharacterEllipsis"/>
+      </StackPanel>
+      <StackPanel x:Name="TiboPanel" Grid.Row="2" Margin="0,7,0,0">
+        <TextBlock x:Name="TiboTimeLine" Foreground="#FFFFCF4A" FontSize="14" FontWeight="ExtraBold" TextWrapping="NoWrap"/>
+        <Grid Margin="0,3,0,0">
+          <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+          <TextBlock x:Name="TiboForecastLine" Grid.Column="0" Margin="0,3,0,0" Foreground="#FFFFFFFF" FontSize="10.5" FontWeight="Bold" TextWrapping="NoWrap"/>
+          <Button x:Name="TiboDetailButton" Grid.Column="1" Margin="7,0,0,0" Padding="3,1" Background="#C0152639" BorderBrush="#5D91FFE2" BorderThickness="1" Foreground="#FF91FFE2" FontSize="11.5" FontWeight="Bold"><Button.Effect><DropShadowEffect Color="#FF000000" BlurRadius="4" ShadowDepth="1" Opacity="0.95"/></Button.Effect></Button>
+          <Button x:Name="SkinButton" Grid.Column="2" Width="20" Margin="5,0,0,0" Padding="0" Background="#C0152639" BorderBrush="#5D8FEAFF" BorderThickness="1" Foreground="#FF8FEAFF" FontFamily="Segoe UI Symbol" FontSize="12" FontWeight="Bold"><Button.Effect><DropShadowEffect Color="#FF000000" BlurRadius="4" ShadowDepth="1" Opacity="0.95"/></Button.Effect></Button>
+        </Grid>
+      </StackPanel>
+      <StackPanel x:Name="WeeklyPacePanel" Grid.Row="3" Margin="0,7,0,0" Visibility="Collapsed">
+        <TextBlock x:Name="WeeklyPaceLine" FontSize="12.5" FontWeight="Bold" Foreground="#FFFFE1A1" TextTrimming="CharacterEllipsis"/>
         <Grid Width="164" Height="8" Margin="0,3,0,0" HorizontalAlignment="Left">
           <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
           <Border Grid.Column="0" Background="#FF398FEF" CornerRadius="3,0,0,3"/>
@@ -112,16 +123,7 @@ function Format-BeijingShort([string]$instant) {
           <Border x:Name="WeeklyPaceMarker" Grid.ColumnSpan="3" HorizontalAlignment="Left" Width="4" Background="#FFFFFFFF" CornerRadius="2"/>
         </Grid>
       </StackPanel>
-      <TextBlock x:Name="UnavailableLine" Grid.Row="2" Margin="0,5,18,0" FontSize="12" FontWeight="Bold" Foreground="#FFFFFFFF" Visibility="Collapsed"/>
-      <StackPanel Grid.Row="3" Margin="0,6,0,0">
-        <TextBlock x:Name="TiboTimeLine" Foreground="#FFFFFFFF" FontSize="11.5" FontWeight="Bold" TextWrapping="NoWrap"/>
-        <Grid>
-          <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-          <TextBlock x:Name="TiboForecastLine" Grid.Column="0" Margin="0,3,0,0" Foreground="#FFFFE1A1" FontSize="11" FontWeight="Bold" TextWrapping="NoWrap"/>
-          <Button x:Name="TiboDetailButton" Grid.Column="1" Margin="7,0,0,0" Padding="3,1" Background="#C0152639" BorderBrush="#5D91FFE2" BorderThickness="1" Foreground="#FF91FFE2" FontSize="11.5" FontWeight="Bold"><Button.Effect><DropShadowEffect Color="#FF000000" BlurRadius="4" ShadowDepth="1" Opacity="0.95"/></Button.Effect></Button>
-          <Button x:Name="SkinButton" Grid.Column="2" Margin="5,0,0,0" Padding="3,1" Background="#C0152639" BorderBrush="#5D8FEAFF" BorderThickness="1" Foreground="#FF8FEAFF" FontSize="11.5" FontWeight="Bold"><Button.Effect><DropShadowEffect Color="#FF000000" BlurRadius="4" ShadowDepth="1" Opacity="0.95"/></Button.Effect></Button>
-        </Grid>
-      </StackPanel>
+      <TextBlock x:Name="UnavailableLine" Grid.Row="4" Margin="0,7,18,0" FontSize="12" FontWeight="Bold" Foreground="#FFFFFFFF" Visibility="Collapsed"/>
       <Button x:Name="CloseButton" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" Panel.ZIndex="2" Width="18" Height="18" Margin="4,-2,-2,0" Content="x" FontFamily="Segoe UI" FontSize="11" FontWeight="Bold" Foreground="#FFFFFFFF" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" ToolTip="Close for this Codex session"><Button.Effect><DropShadowEffect Color="#FF000000" BlurRadius="4" ShadowDepth="1" Opacity="0.95"/></Button.Effect></Button>
       </Grid>
     </Grid>
@@ -152,9 +154,11 @@ $weeklyPanel = $window.FindName('WeeklyPanel')
 $weeklyUsageButton = $window.FindName('WeeklyUsageButton')
 $weeklyPercentLine = $window.FindName('WeeklyPercentLine')
 $weeklyResetLine = $window.FindName('WeeklyResetLine')
+$weeklyPacePanel = $window.FindName('WeeklyPacePanel')
 $weeklyPaceLine = $window.FindName('WeeklyPaceLine')
 $weeklyPaceMarker = $window.FindName('WeeklyPaceMarker')
 $unavailableLine = $window.FindName('UnavailableLine')
+$tiboPanel = $window.FindName('TiboPanel')
 $tiboTimeLine = $window.FindName('TiboTimeLine')
 $tiboForecastLine = $window.FindName('TiboForecastLine')
 $tiboDetailButton = $window.FindName('TiboDetailButton')
@@ -168,7 +172,7 @@ $weeklyUsageButton.Content = TextFrom64 '5ZGo6aKd5bqm'
 $weeklyUsageButton.ToolTip = TextFrom64 '54K55Ye75omT5byA6aKd5bqm5oC76KeI'
 $unavailableLine.Text = TextFrom64 '5Liq5Lq66aKd5bqm5pqC5LiN5Y+v6K+7'
 $tiboDetailButton.Content = TextFrom64 '6K+m5oOF'
-$skinButton.Content = TextFrom64 '5o2i6IKk'
+$skinButton.Content = [char]0x2726
 $tiboTimeLine.ToolTip = TextFrom64 '56ys5LiJ5pa56aKE5rWL77yM5LiN5piv5a6Y5pa55om/6K+6'
 $tiboForecastLine.ToolTip = $tiboTimeLine.ToolTip
 $closeButton.ToolTip = TextFrom64 '5YWz6Zet5pys5qyh5pi+56S6'
@@ -377,13 +381,14 @@ function Set-QuotaPanel($panel, $percentLine, $resetLine, $segments, $bucket, [s
 }
 
 function Set-CurrentUsagePace($pace) {
-  if ($null -eq $pace -or $pace.status -eq 'warming_up') { $weeklyPaceLine.Text = ''; $weeklyPaceMarker.Margin = New-Object Windows.Thickness(80, 0, 0, 0); return }
+  if ($null -eq $pace -or $pace.status -eq 'warming_up') { $weeklyPacePanel.Visibility = [Windows.Visibility]::Collapsed; $weeklyPaceLine.Text = ''; $weeklyPaceMarker.Margin = New-Object Windows.Thickness(80, 0, 0, 0); return }
   $label = if ($pace.status -eq 'fast') { TextFrom64 '5YGP5b+r' } elseif ($pace.status -eq 'slow') { TextFrom64 '5YGP5oWi' } else { TextFrom64 '5Z2H5YyA' }
   $multiplier = if ($null -ne $pace.paceMultiplier) { " $($pace.paceMultiplier)x" } else { '' }
   $weeklyPaceLine.Text = "$(TextFrom64 '6YCf5bqm77ya')$label$multiplier  $($pace.usedPercent)/$($pace.expectedUsedPercent)%"
   $multiplierForMarker = if ($null -ne $pace.paceMultiplier) { [double]$pace.paceMultiplier } else { 1 }
   $position = [Math]::Max(5, [Math]::Min(95, 50 + (($multiplierForMarker - 1) * 30)))
   $weeklyPaceMarker.Margin = New-Object Windows.Thickness(([Math]::Round((164 * $position / 100) - 2, 1)), 0, 0, 0)
+  $weeklyPacePanel.Visibility = [Windows.Visibility]::Visible
 }
 
 function Show-NearTopRight {
@@ -426,7 +431,7 @@ function Update-Overlay {
     $compactPercentLine.Text = if ($null -ne $compactBucket -and $null -ne $compactBucket.remainingPercent) { "$($compactBucket.remainingPercent)%" } else { ([char]0x2014) }
     $compactRemaining = if ($null -ne $compactBucket) { $compactBucket.remainingPercent } else { $null }
     Set-CompactQuotaArc $compactRemaining
-    if ($hasWeekly) { Set-CurrentUsagePace $state.account.usagePace } else { $weeklyPaceLine.Text = ''; $weeklyPaceMarker.Margin = New-Object Windows.Thickness(80, 0, 0, 0) }
+    if ($hasWeekly) { Set-CurrentUsagePace $state.account.usagePace } else { $weeklyPacePanel.Visibility = [Windows.Visibility]::Collapsed; $weeklyPaceLine.Text = ''; $weeklyPaceMarker.Margin = New-Object Windows.Thickness(80, 0, 0, 0) }
     if (-not $hasMain -and -not $hasWeekly) {
       $unavailableLine.Visibility = [Windows.Visibility]::Visible
       $script:expandedHeight = 86
@@ -439,21 +444,23 @@ function Update-Overlay {
       $postedAt = Format-BeijingShort ([string]$watch.observedAt)
       $deadlineAt = Format-BeijingShort ([string]$watch.expiresAt)
       $timeLabel = if ($postedAt) { $postedAt } else { TextFrom64 '5b6F5a6a' }
-      $tiboTimeLine.Text = "$(TextFrom64 'VGlib+mHjee9ru+8iA==')$timeLabel$(TextFrom64 '77yJ')"
+      $tiboTimeLine.Text = "$(TextFrom64 'VGlib+eJqeeQhumHjee9ru+8iA==')$timeLabel$(TextFrom64 '77yJ')"
       $override = $script:tiboForecastOverrides[[string]$watch.id]
-      $tiboForecastLine.Text = if ($override) { TextFrom64 $override } elseif ($deadlineAt) { "$(TextFrom64 '57qm')$deadlineAt$(TextFrom64 '5YmN')" } else { TextFrom64 '6aKE5rWL5pe26Ze05b6F5a6a' }
+      $forecastLabel = if ($override) { TextFrom64 $override } elseif ($deadlineAt) { "$(TextFrom64 '57qm')$deadlineAt$(TextFrom64 '5YmN')" } else { TextFrom64 '6aKE5rWL5pe26Ze05b6F5a6a' }
+      $tiboForecastLine.Text = "$(TextFrom64 '6aKE5rWL6YeN572u5pe26Ze077ya')$forecastLabel"
       $script:expandedHeight += 20
     } else {
-      $tiboTimeLine.Text = "$(TextFrom64 'VGlib+mHjee9ru+8iA==')$(TextFrom64 '5peg')$(TextFrom64 '77yJ')"
+      $tiboTimeLine.Text = "$(TextFrom64 'VGlib+eJqeeQhumHjee9ru+8iA==')$(TextFrom64 '5peg')$(TextFrom64 '77yJ')"
       $tiboForecastLine.Text = ''
     }
   } catch {
     Set-QuotaPanel $mainPanel $mainPercentLine $mainResetLine $mainMeterSegments $null '#FF65DFFF' | Out-Null
     Set-QuotaPanel $weeklyPanel $weeklyPercentLine $weeklyResetLine $weeklyMeterSegments $null '#FFFFB84D' | Out-Null
     $weeklyPaceLine.Text = ''
+    $weeklyPacePanel.Visibility = [Windows.Visibility]::Collapsed
     $weeklyPaceMarker.Margin = New-Object Windows.Thickness(80, 0, 0, 0)
     $unavailableLine.Visibility = [Windows.Visibility]::Visible
-    $tiboTimeLine.Text = "$(TextFrom64 'VGlib+mHjee9ru+8iA==')$(TextFrom64 '5peg')$(TextFrom64 '77yJ')"
+    $tiboTimeLine.Text = "$(TextFrom64 'VGlib+eJqeeQhumHjee9ru+8iA==')$(TextFrom64 '5peg')$(TextFrom64 '77yJ')"
     $tiboForecastLine.Text = ''
     $compactPercentLine.Text = [char]0x2014
     Set-CompactQuotaArc $null
