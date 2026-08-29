@@ -37,6 +37,9 @@ test("展开浮窗离开即收起，小球下方显示 Tibo 预测上限倒计�
   assert.match(source, /function Update-CompactTiboCountdown/);
   assert.match(source, /\$script:tiboForecastDeadline = ConvertTo-DateTimeOffset \$watch\.expiresAt/);
   assert.match(source, /\$remaining = \$script:tiboForecastDeadline\.ToUniversalTime\(\) - \[DateTimeOffset\]::UtcNow/);
+  assert.match(source, /\$remainingHours = \[Math\]::Max\(0, \[Math\]::Ceiling\(\$remaining\.TotalHours\)\)/, "至多小时应向上取整");
+  assert.match(source, /\$compactTiboCountdownLine\.Text = "\$\(TextFrom64 '6Iez5aSa'\)\$\(\$remainingHours\.ToString\('0'\)\)h"/);
+  assert.doesNotMatch(source, /x:Name="CompactTiboCaption"/, "小球下方不应堆叠额外说明");
   assert.match(source, /\$countdownTimer\.Interval = \[TimeSpan\]::FromMinutes\(1\)/, "倒计时应本地每分钟更新");
   assert.match(source, /\$root\.Add_MouseLeave\(\{[\s\S]*?Collapse-Overlay; Save-OverlayPosition[\s\S]*?\}\)/);
   assert.doesNotMatch(source, /AddSeconds\(4\)/, "离开不应再等待 4 秒");

@@ -70,7 +70,7 @@ function Format-BeijingDayShort($instant) {
         TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="Grayscale">
   <Border x:Name="Root" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="0">
     <Grid>
-      <StackPanel x:Name="CompactSurface" Width="120" HorizontalAlignment="Center" VerticalAlignment="Top">
+      <StackPanel x:Name="CompactSurface" Width="76" HorizontalAlignment="Center" VerticalAlignment="Top">
         <Grid x:Name="CompactPanel" Width="58" Height="58" HorizontalAlignment="Center" Cursor="Hand">
           <Ellipse x:Name="CompactShell" Fill="#EA102538" Stroke="#FF65DFFF" StrokeThickness="2">
             <Ellipse.Effect><DropShadowEffect Color="#FF35D7FF" BlurRadius="12" ShadowDepth="0" Opacity="0.58"/></Ellipse.Effect>
@@ -86,15 +86,12 @@ function Format-BeijingDayShort($instant) {
           <TextBlock x:Name="CompactPercentLine" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" Foreground="#FFFFFFFF" FontSize="16" FontWeight="Bold" TextAlignment="Center"/>
           <TextBlock x:Name="CompactSkinMark" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,3" Background="Transparent" Foreground="#FFFFFFFF" FontFamily="Segoe UI" FontSize="7" FontWeight="Bold" TextAlignment="Center" IsHitTestVisible="False"/>
         </Grid>
-        <Border x:Name="CompactTiboCountdownBadge" Width="116" Height="32" Margin="0,-1,0,0" Padding="5,1" CornerRadius="10" BorderBrush="#CC79F3FF" BorderThickness="1" Visibility="Collapsed" IsHitTestVisible="False">
+        <Border x:Name="CompactTiboCountdownBadge" Width="72" Height="20" Margin="0,-1,0,0" Padding="4,0" CornerRadius="9" BorderBrush="#CC79F3FF" BorderThickness="1" Visibility="Collapsed" IsHitTestVisible="False">
           <Border.Background>
             <LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#EE102B42" Offset="0"/><GradientStop Color="#E5301740" Offset="0.55"/><GradientStop Color="#EE102B42" Offset="1"/></LinearGradientBrush>
           </Border.Background>
           <Border.Effect><DropShadowEffect Color="#FF57E9FF" BlurRadius="10" ShadowDepth="0" Opacity="0.82"/></Border.Effect>
-          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-            <TextBlock x:Name="CompactTiboCaption" Background="Transparent" Foreground="#FF8FF5FF" FontSize="8.5" FontWeight="Bold" TextAlignment="Center" HorizontalAlignment="Center"/>
-            <TextBlock x:Name="CompactTiboCountdownLine" Margin="0,-1,0,0" Background="Transparent" Foreground="#FFFFDF75" FontSize="11.5" FontWeight="ExtraBold" TextAlignment="Center" HorizontalAlignment="Center"/>
-          </StackPanel>
+          <TextBlock x:Name="CompactTiboCountdownLine" Background="Transparent" Foreground="#FFFFDF75" FontSize="11" FontWeight="ExtraBold" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
       </StackPanel>
       <Grid x:Name="ExpandedPanel" Margin="5" Visibility="Collapsed">
@@ -179,7 +176,6 @@ $compactPercentBadge = $window.FindName('CompactPercentBadge')
 $compactPercentLine = $window.FindName('CompactPercentLine')
 $compactSkinMark = $window.FindName('CompactSkinMark')
 $compactTiboCountdownBadge = $window.FindName('CompactTiboCountdownBadge')
-$compactTiboCaption = $window.FindName('CompactTiboCaption')
 $compactTiboCountdownLine = $window.FindName('CompactTiboCountdownLine')
 $expandedPanel = $window.FindName('ExpandedPanel')
 $closeButton = $window.FindName('CloseButton')
@@ -209,7 +205,6 @@ $mainLabel.Text = TextFrom64 '5Li76aKd5bqm'
 $weeklyUsageButton.Content = TextFrom64 '5ZGo6aKd5bqm'
 $weeklyUsageButton.ToolTip = TextFrom64 '54K55Ye75omT5byA6aKd5bqm5oC76KeI'
 $tiboLabel.Text = TextFrom64 'VGlib+eJqeeQhumHjee9rg=='
-$compactTiboCaption.Text = "TIBO $([char]0x00B7) $(TextFrom64 '54mp55CG6YeN572u6aKE5rWL')"
 $compactTiboCountdownBadge.ToolTip = TextFrom64 'VGlib+eJqeeQhumHjee9ru+8iOesrOS4ieaWuemihOa1i++8ieacgOWkmuWJqeS9meaXtumXtA=='
 $unavailableLine.Text = TextFrom64 '5Liq5Lq66aKd5bqm5pqC5LiN5Y+v6K+7'
 $tiboDetailButton.Content = TextFrom64 '6K+m5oOF'
@@ -514,8 +509,8 @@ function Apply-OverlayMode {
     $expandedPanel.Visibility = [Windows.Visibility]::Collapsed
     $compactSurface.Visibility = [Windows.Visibility]::Visible
     $hasTiboCountdown = $compactTiboCountdownBadge.Visibility -eq [Windows.Visibility]::Visible
-    $window.Width = if ($hasTiboCountdown) { 120 } else { 60 }
-    $window.Height = if ($hasTiboCountdown) { 92 } else { 60 }
+    $window.Width = if ($hasTiboCountdown) { 76 } else { 60 }
+    $window.Height = if ($hasTiboCountdown) { 78 } else { 60 }
   }
   Clamp-OverlayToWorkArea
 }
@@ -637,23 +632,12 @@ function Update-CompactTiboCountdown {
     $compactTiboCountdownBadge.Visibility = [Windows.Visibility]::Collapsed
   } else {
     $remaining = $script:tiboForecastDeadline.ToUniversalTime() - [DateTimeOffset]::UtcNow
+    $remainingHours = [Math]::Max(0, [Math]::Ceiling($remaining.TotalHours))
+    $compactTiboCountdownLine.Text = "$(TextFrom64 '6Iez5aSa')$($remainingHours.ToString('0'))h"
     if ($remaining.TotalSeconds -le 0) {
-      $compactTiboCountdownLine.Text = TextFrom64 '6aKE5rWL56qX5Y+j5bey5Yiw'
       $compactTiboCountdownLine.Foreground = '#FFFF9A72'
       $compactTiboCountdownBadge.BorderBrush = '#CCFF8C78'
     } else {
-      $totalMinutes = [Math]::Max(1, [Math]::Ceiling($remaining.TotalMinutes))
-      $days = [Math]::Floor($totalMinutes / 1440)
-      $hours = [Math]::Floor(($totalMinutes % 1440) / 60)
-      $minutes = [int]($totalMinutes % 60)
-      if ($days -gt 0) {
-        $duration = "$days$(TextFrom64 '5aSp')$($hours.ToString('00'))$(TextFrom64 '5pe2')$($minutes.ToString('00'))$(TextFrom64 '5YiG')"
-      } elseif ($hours -gt 0) {
-        $duration = "$hours$(TextFrom64 '5pe2')$($minutes.ToString('00'))$(TextFrom64 '5YiG')"
-      } else {
-        $duration = "$minutes$(TextFrom64 '5YiG')"
-      }
-      $compactTiboCountdownLine.Text = "$(TextFrom64 '5pyA5aSa') $duration"
       $compactTiboCountdownLine.Foreground = '#FFFFDF75'
       $compactTiboCountdownBadge.BorderBrush = '#CC79F3FF'
     }
