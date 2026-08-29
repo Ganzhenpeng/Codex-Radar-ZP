@@ -1,0 +1,15 @@
+{
+  "name": "codex-radar-zp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local-only Codex quota overlay and Tibo reset radar for Windows.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test",
+    "check": "node --check server.mjs && node --check lib/radar-core.mjs && node --check public/app.js && node --check public/usage.js"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

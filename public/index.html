@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Codex 重置雷达</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="masthead">
+        <div><p class="eyebrow">LOCAL-ONLY · READ-ONLY</p><h1>Codex 重置雷达</h1><p class="subtle">个人额度实况与 Tibo 公开信号分开呈现，避免把预测当成已重置。</p></div>
+        <div class="actions"><span id="status-pill" class="pill neutral">加载中</span><button id="refresh" type="button">立即刷新</button></div>
+      </header>
+      <p id="notice" class="notice" hidden></p>
+      <section class="grid primary-grid">
+        <article class="card" id="account-card"><div class="card-head"><div><p class="kicker">PERSONAL EVIDENCE</p><h2>我的 Codex 额度</h2></div><span id="account-health" class="source-state">读取中</span></div><div id="account-content" class="empty">正在读取本机 Codex App Server…</div><p class="fineprint">来源：本机 App Server 只读接口。不会登录、兑换重置卡或更改账户。</p></article>
+        <article class="card" id="public-card"><div class="card-head"><div><p class="kicker">PUBLIC SIGNAL</p><h2>Tibo 重置雷达</h2></div><span id="public-health" class="source-state">读取中</span></div><div id="public-content" class="empty">正在读取公共 Tracker…</div><p class="fineprint">文字为第三方 Tracker 转录/分类；原帖链接供你手动打开，不代表系统直接读取 X。</p></article>
+      </section>
+      <section class="grid secondary-grid">
+        <article class="card"><p class="kicker">CORRELATION, NOT CAUSATION</p><h2>公开状态与个人状态对照</h2><div id="derived-content" class="empty">等待数据…</div></article>
+        <article class="card"><p class="kicker">RUNNING STATUS</p><h2>检查与数据源健康</h2><div id="scheduler-content" class="empty">等待数据…</div></article>
+      </section>
+      <section class="card history-card"><div class="card-head"><div><p class="kicker">PUBLIC HISTORY</p><h2>公开重置记录</h2></div><label class="filter">筛选 <select id="history-filter"><option value="all">全部</option><option value="full_reset">全量重置</option><option value="banked_reset">重置卡</option><option value="watch">预告/观察</option></select></label></div><div id="history-content" class="history empty">暂无公共记录。</div></section>
+      <footer>仅监听 <code>127.0.0.1</code> · 面板每分钟读取本地状态，后台只在允许整点访问网络。 <span id="updated-at"></span></footer>
+    </main>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

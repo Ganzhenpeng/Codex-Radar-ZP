@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Codex 用量总览</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/usage.css">
+    <link rel="stylesheet" href="/usage-pace.css">
+  </head>
+  <body>
+    <main class="shell usage-shell">
+      <header class="masthead">
+        <div>
+          <p class="eyebrow">LOCAL-ONLY · ACCOUNT EVIDENCE</p>
+          <h1>Codex 用量总览</h1>
+          <p class="subtle">借鉴 codexU 的窗口化总览方式，但仅显示本机 App Server 直接提供的额度、恢复时间和重置卡。</p>
+        </div>
+        <div class="actions"><a class="button-link quiet-link" href="/">Tibo 重置雷达</a><span id="health-pill" class="pill neutral">加载中</span><button id="refresh" type="button">立即刷新</button></div>
+      </header>
+      <p id="notice" class="notice" hidden></p>
+
+      <section class="usage-hero">
+        <article class="card usage-summary-card">
+          <p class="kicker">CURRENT CODEx ALLOWANCE</p>
+          <div id="summary-content" class="empty">正在读取本机额度窗口…</div>
+          <p class="fineprint">主额度与周额度只在通用 <code>codex</code> 桶实际返回对应窗口时显示；不会拿独立模型额度替代它们。</p>
+        </article>
+        <article class="card usage-source-card">
+          <p class="kicker">LOCAL DATA BOUNDARY</p>
+          <h2>本页能证明什么</h2>
+          <ul class="boundary-list">
+            <li>已用/剩余百分比、窗口长度、自然恢复时间</li>
+            <li>独立模型额度桶与可用重置卡</li>
+            <li>个人额度来源健康状态与本地缓存新鲜度</li>
+          </ul>
+          <p class="fineprint">不会读取或上传线程正文、提示词、路径或登录凭据。接口未提供绝对 eToken/token 总量时，本页不会编造或估算。</p>
+        </article>
+      </section>
+
+      <section class="card quota-section">
+        <div class="card-head"><div><p class="kicker">WINDOWS</p><h2>主额度与周额度</h2></div><span id="account-health" class="source-state">读取中</span></div>
+        <div id="quota-windows" class="quota-windows empty">等待额度数据…</div>
+      </section>
+
+      <section class="card project-usage-section">
+        <div class="card-head"><div><p class="kicker">LOCAL PROJECT LEDGER</p><h2>项目消耗</h2></div><span id="project-total" class="source-state">读取中</span></div>
+        <p class="project-boundary">以本周额度为 100：只把本机后续观察到的“周额度新增消耗”记到当前项目。App Server 未提供官方逐项目账单，启动追踪前的已用量会保留为未追踪，绝不强行分摊。</p>
+        <form id="project-form" class="project-form">
+          <label for="project-name">当前项目</label><input id="project-name" name="project" maxlength="60" autocomplete="off" placeholder="例如：压电梁论文"><button type="submit">开始归因</button>
+        </form>
+        <div id="project-usage" class="project-usage empty">等待周额度数据…</div>
+      </section>
+
+      <section class="grid secondary-grid usage-secondary-grid">
+        <article class="card"><p class="kicker">MODEL BUCKETS</p><h2>独立模型额度</h2><div id="model-buckets" class="compact-buckets empty">等待额度数据…</div></article>
+        <article class="card"><p class="kicker">RESET &amp; FRESHNESS</p><h2>重置卡与数据状态</h2><div id="credits-health" class="empty">等待额度数据…</div></article>
+      </section>
+
+      <footer>只读本机 <code>account/rateLimits/read</code> 数据 · 绝对 token / eToken 未由该接口提供。<span id="updated-at"></span></footer>
+    </main>
+    <script type="module" src="/usage.js"></script>
+  </body>
+</html>
