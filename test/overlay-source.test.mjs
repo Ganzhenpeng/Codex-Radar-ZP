@@ -31,6 +31,19 @@ test("小圆球按剩余额度绘制圆环", () => {
   assert.match(source, /Set-CompactQuotaArc \$compactRemaining/);
 });
 
+test("展开浮窗离开即收起，小球下方显示 Tibo 预测上限倒计时", () => {
+  assert.match(source, /x:Name="CompactTiboCountdownBadge"/);
+  assert.match(source, /x:Name="CompactTiboCountdownLine"/);
+  assert.match(source, /function Update-CompactTiboCountdown/);
+  assert.match(source, /\$script:tiboForecastDeadline = ConvertTo-DateTimeOffset \$watch\.expiresAt/);
+  assert.match(source, /\$remaining = \$script:tiboForecastDeadline\.ToUniversalTime\(\) - \[DateTimeOffset\]::UtcNow/);
+  assert.match(source, /\$countdownTimer\.Interval = \[TimeSpan\]::FromMinutes\(1\)/, "倒计时应本地每分钟更新");
+  assert.match(source, /\$root\.Add_MouseLeave\(\{[\s\S]*?Collapse-Overlay; Save-OverlayPosition[\s\S]*?\}\)/);
+  assert.doesNotMatch(source, /AddSeconds\(4\)/, "离开不应再等待 4 秒");
+  assert.doesNotMatch(source, /\$collapseTimer/, "不应保留延时收起计时器");
+  assert.match(source, /\$compactTiboCountdownBadge\.BeginAnimation/, "倒计时标签应有脉冲效果");
+});
+
 test("周额度文字承接额度详情入口，Tibo 栏与周额度统一排版", () => {
   assert.match(source, /x:Name="WeeklyUsageButton"/);
   assert.match(source, /\$weeklyUsageButton\.Add_Click\(\{ Start-Process 'http:\/\/127\.0\.0\.1:43721\/usage\.html' \}\)/);

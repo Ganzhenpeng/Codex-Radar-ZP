@@ -70,21 +70,33 @@ function Format-BeijingDayShort($instant) {
         TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="Grayscale">
   <Border x:Name="Root" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="0">
     <Grid>
-      <Grid x:Name="CompactPanel" Width="58" Height="58" Cursor="Hand">
-        <Ellipse x:Name="CompactShell" Fill="#EA102538" Stroke="#FF65DFFF" StrokeThickness="2">
-          <Ellipse.Effect><DropShadowEffect Color="#FF35D7FF" BlurRadius="12" ShadowDepth="0" Opacity="0.58"/></Ellipse.Effect>
-        </Ellipse>
-        <Border x:Name="CompactBand" Width="54" Height="11" Background="#CC39C9E8" Opacity="0.72" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Border.RenderTransform><RotateTransform Angle="-24"/></Border.RenderTransform>
+      <StackPanel x:Name="CompactSurface" Width="120" HorizontalAlignment="Center" VerticalAlignment="Top">
+        <Grid x:Name="CompactPanel" Width="58" Height="58" HorizontalAlignment="Center" Cursor="Hand">
+          <Ellipse x:Name="CompactShell" Fill="#EA102538" Stroke="#FF65DFFF" StrokeThickness="2">
+            <Ellipse.Effect><DropShadowEffect Color="#FF35D7FF" BlurRadius="12" ShadowDepth="0" Opacity="0.58"/></Ellipse.Effect>
+          </Ellipse>
+          <Border x:Name="CompactBand" Width="54" Height="11" Background="#CC39C9E8" Opacity="0.72" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+            <Border.RenderTransform><RotateTransform Angle="-24"/></Border.RenderTransform>
+          </Border>
+          <Ellipse x:Name="CompactCore" Width="10" Height="10" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="9,9,0,0" Fill="#FFFF5CA8" Stroke="#CCFFFFFF" StrokeThickness="1" IsHitTestVisible="False"/>
+          <Ellipse x:Name="CompactTrack" Margin="5" Fill="Transparent" Stroke="#665FDFFF" StrokeThickness="4"/>
+          <Path x:Name="CompactQuotaArc" Fill="Transparent" Stroke="#FF65DFFF" StrokeThickness="4" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+          <TextBlock x:Name="CompactSkinGlyph" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,4,0,0" Background="Transparent" Foreground="#FFB7F3FF" FontFamily="Segoe UI Symbol" FontSize="15" FontWeight="Bold" TextAlignment="Center" IsHitTestVisible="False"/>
+          <Border x:Name="CompactPercentBadge" Width="43" Height="23" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#E6101C28" BorderBrush="#99FFFFFF" BorderThickness="1" CornerRadius="12" IsHitTestVisible="False"/>
+          <TextBlock x:Name="CompactPercentLine" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" Foreground="#FFFFFFFF" FontSize="16" FontWeight="Bold" TextAlignment="Center"/>
+          <TextBlock x:Name="CompactSkinMark" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,3" Background="Transparent" Foreground="#FFFFFFFF" FontFamily="Segoe UI" FontSize="7" FontWeight="Bold" TextAlignment="Center" IsHitTestVisible="False"/>
+        </Grid>
+        <Border x:Name="CompactTiboCountdownBadge" Width="116" Height="32" Margin="0,-1,0,0" Padding="5,1" CornerRadius="10" BorderBrush="#CC79F3FF" BorderThickness="1" Visibility="Collapsed" IsHitTestVisible="False">
+          <Border.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#EE102B42" Offset="0"/><GradientStop Color="#E5301740" Offset="0.55"/><GradientStop Color="#EE102B42" Offset="1"/></LinearGradientBrush>
+          </Border.Background>
+          <Border.Effect><DropShadowEffect Color="#FF57E9FF" BlurRadius="10" ShadowDepth="0" Opacity="0.82"/></Border.Effect>
+          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock x:Name="CompactTiboCaption" Background="Transparent" Foreground="#FF8FF5FF" FontSize="8.5" FontWeight="Bold" TextAlignment="Center" HorizontalAlignment="Center"/>
+            <TextBlock x:Name="CompactTiboCountdownLine" Margin="0,-1,0,0" Background="Transparent" Foreground="#FFFFDF75" FontSize="11.5" FontWeight="ExtraBold" TextAlignment="Center" HorizontalAlignment="Center"/>
+          </StackPanel>
         </Border>
-        <Ellipse x:Name="CompactCore" Width="10" Height="10" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="9,9,0,0" Fill="#FFFF5CA8" Stroke="#CCFFFFFF" StrokeThickness="1" IsHitTestVisible="False"/>
-        <Ellipse x:Name="CompactTrack" Margin="5" Fill="Transparent" Stroke="#665FDFFF" StrokeThickness="4"/>
-        <Path x:Name="CompactQuotaArc" Fill="Transparent" Stroke="#FF65DFFF" StrokeThickness="4" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-        <TextBlock x:Name="CompactSkinGlyph" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,4,0,0" Background="Transparent" Foreground="#FFB7F3FF" FontFamily="Segoe UI Symbol" FontSize="15" FontWeight="Bold" TextAlignment="Center" IsHitTestVisible="False"/>
-        <Border x:Name="CompactPercentBadge" Width="43" Height="23" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#E6101C28" BorderBrush="#99FFFFFF" BorderThickness="1" CornerRadius="12" IsHitTestVisible="False"/>
-        <TextBlock x:Name="CompactPercentLine" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" Foreground="#FFFFFFFF" FontSize="16" FontWeight="Bold" TextAlignment="Center"/>
-        <TextBlock x:Name="CompactSkinMark" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,3" Background="Transparent" Foreground="#FFFFFFFF" FontFamily="Segoe UI" FontSize="7" FontWeight="Bold" TextAlignment="Center" IsHitTestVisible="False"/>
-      </Grid>
+      </StackPanel>
       <Grid x:Name="ExpandedPanel" Margin="5" Visibility="Collapsed">
       <Grid.Resources>
         <Style TargetType="TextBlock">
@@ -155,6 +167,7 @@ function Format-BeijingDayShort($instant) {
 $reader = New-Object System.Xml.XmlNodeReader $xaml
 $window = [Windows.Markup.XamlReader]::Load($reader)
 $root = $window.FindName('Root')
+$compactSurface = $window.FindName('CompactSurface')
 $compactPanel = $window.FindName('CompactPanel')
 $compactShell = $window.FindName('CompactShell')
 $compactBand = $window.FindName('CompactBand')
@@ -165,6 +178,9 @@ $compactSkinGlyph = $window.FindName('CompactSkinGlyph')
 $compactPercentBadge = $window.FindName('CompactPercentBadge')
 $compactPercentLine = $window.FindName('CompactPercentLine')
 $compactSkinMark = $window.FindName('CompactSkinMark')
+$compactTiboCountdownBadge = $window.FindName('CompactTiboCountdownBadge')
+$compactTiboCaption = $window.FindName('CompactTiboCaption')
+$compactTiboCountdownLine = $window.FindName('CompactTiboCountdownLine')
 $expandedPanel = $window.FindName('ExpandedPanel')
 $closeButton = $window.FindName('CloseButton')
 $mainPanel = $window.FindName('MainPanel')
@@ -193,6 +209,8 @@ $mainLabel.Text = TextFrom64 '5Li76aKd5bqm'
 $weeklyUsageButton.Content = TextFrom64 '5ZGo6aKd5bqm'
 $weeklyUsageButton.ToolTip = TextFrom64 '54K55Ye75omT5byA6aKd5bqm5oC76KeI'
 $tiboLabel.Text = TextFrom64 'VGlib+eJqeeQhumHjee9rg=='
+$compactTiboCaption.Text = "TIBO $([char]0x00B7) $(TextFrom64 '54mp55CG6YeN572u6aKE5rWL')"
+$compactTiboCountdownBadge.ToolTip = TextFrom64 'VGlib+eJqeeQhumHjee9ru+8iOesrOS4ieaWuemihOa1i++8ieacgOWkmuWJqeS9meaXtumXtA=='
 $unavailableLine.Text = TextFrom64 '5Liq5Lq66aKd5bqm5pqC5LiN5Y+v6K+7'
 $tiboDetailButton.Content = TextFrom64 '6K+m5oOF'
 $skinButton.Content = [char]0x2726
@@ -206,7 +224,7 @@ $script:lastTargetProcess = $null
 $script:positionInitialised = $false
 $script:isExpanded = $false
 $script:expandedHeight = 166
-$script:collapseAt = $null
+$script:tiboForecastDeadline = $null
 $script:skinIndex = 0
 $script:skinPopup = $null
 $script:skinButtons = @()
@@ -390,8 +408,7 @@ function Initialize-SkinPicker {
   $popup.AllowsTransparency = $true
   $popup.StaysOpen = $false
   $popup.Placement = [Windows.Controls.Primitives.PlacementMode]::Bottom
-  $popup.Add_Opened({ $script:collapseAt = $null })
-  $popup.Add_Closed({ if ($script:isExpanded) { $script:collapseAt = [DateTime]::UtcNow.AddSeconds(4) } })
+  $popup.Add_Closed({ if ($script:isExpanded -and -not $root.IsMouseOver) { Collapse-Overlay; Save-OverlayPosition } })
 
   $frame = New-Object Windows.Controls.Border
   $frame.Background = ConvertTo-Brush '#FA08131D'
@@ -469,6 +486,14 @@ function Start-SkinAnimations {
   $pulse.AutoReverse = $true
   $pulse.RepeatBehavior = [Windows.Media.Animation.RepeatBehavior]::Forever
   $compactCore.BeginAnimation([Windows.UIElement]::OpacityProperty, $pulse)
+
+  $countdownPulse = New-Object Windows.Media.Animation.DoubleAnimation
+  $countdownPulse.From = 0.72
+  $countdownPulse.To = 1
+  $countdownPulse.Duration = [TimeSpan]::FromSeconds(1.1)
+  $countdownPulse.AutoReverse = $true
+  $countdownPulse.RepeatBehavior = [Windows.Media.Animation.RepeatBehavior]::Forever
+  $compactTiboCountdownBadge.BeginAnimation([Windows.UIElement]::OpacityProperty, $countdownPulse)
 }
 
 function Clamp-OverlayToWorkArea {
@@ -481,28 +506,27 @@ function Clamp-OverlayToWorkArea {
 
 function Apply-OverlayMode {
   if ($script:isExpanded) {
-    $compactPanel.Visibility = [Windows.Visibility]::Collapsed
+    $compactSurface.Visibility = [Windows.Visibility]::Collapsed
     $expandedPanel.Visibility = [Windows.Visibility]::Visible
     $window.Width = 236
     $window.Height = $script:expandedHeight
   } else {
     $expandedPanel.Visibility = [Windows.Visibility]::Collapsed
-    $compactPanel.Visibility = [Windows.Visibility]::Visible
-    $window.Width = 60
-    $window.Height = 60
+    $compactSurface.Visibility = [Windows.Visibility]::Visible
+    $hasTiboCountdown = $compactTiboCountdownBadge.Visibility -eq [Windows.Visibility]::Visible
+    $window.Width = if ($hasTiboCountdown) { 120 } else { 60 }
+    $window.Height = if ($hasTiboCountdown) { 92 } else { 60 }
   }
   Clamp-OverlayToWorkArea
 }
 
 function Expand-Overlay {
   $script:isExpanded = $true
-  $script:collapseAt = $null
   Apply-OverlayMode
 }
 
 function Collapse-Overlay {
   $script:isExpanded = $false
-  $script:collapseAt = $null
   Apply-OverlayMode
 }
 
@@ -606,6 +630,39 @@ function Set-CurrentUsagePace($pace) {
   $weeklyPacePanel.Visibility = [Windows.Visibility]::Visible
 }
 
+function Update-CompactTiboCountdown {
+  $wasVisible = $compactTiboCountdownBadge.Visibility -eq [Windows.Visibility]::Visible
+  if ($null -eq $script:tiboForecastDeadline) {
+    $compactTiboCountdownLine.Text = ''
+    $compactTiboCountdownBadge.Visibility = [Windows.Visibility]::Collapsed
+  } else {
+    $remaining = $script:tiboForecastDeadline.ToUniversalTime() - [DateTimeOffset]::UtcNow
+    if ($remaining.TotalSeconds -le 0) {
+      $compactTiboCountdownLine.Text = TextFrom64 '6aKE5rWL56qX5Y+j5bey5Yiw'
+      $compactTiboCountdownLine.Foreground = '#FFFF9A72'
+      $compactTiboCountdownBadge.BorderBrush = '#CCFF8C78'
+    } else {
+      $totalMinutes = [Math]::Max(1, [Math]::Ceiling($remaining.TotalMinutes))
+      $days = [Math]::Floor($totalMinutes / 1440)
+      $hours = [Math]::Floor(($totalMinutes % 1440) / 60)
+      $minutes = [int]($totalMinutes % 60)
+      if ($days -gt 0) {
+        $duration = "$days$(TextFrom64 '5aSp')$($hours.ToString('00'))$(TextFrom64 '5pe2')$($minutes.ToString('00'))$(TextFrom64 '5YiG')"
+      } elseif ($hours -gt 0) {
+        $duration = "$hours$(TextFrom64 '5pe2')$($minutes.ToString('00'))$(TextFrom64 '5YiG')"
+      } else {
+        $duration = "$minutes$(TextFrom64 '5YiG')"
+      }
+      $compactTiboCountdownLine.Text = "$(TextFrom64 '5pyA5aSa') $duration"
+      $compactTiboCountdownLine.Foreground = '#FFFFDF75'
+      $compactTiboCountdownBadge.BorderBrush = '#CC79F3FF'
+    }
+    $compactTiboCountdownBadge.Visibility = [Windows.Visibility]::Visible
+  }
+  $isVisible = $compactTiboCountdownBadge.Visibility -eq [Windows.Visibility]::Visible
+  if ($wasVisible -ne $isVisible -and -not $script:isExpanded) { Apply-OverlayMode }
+}
+
 function Show-NearTopRight {
   Restore-OverlayPosition
   Apply-OverlayMode
@@ -658,14 +715,17 @@ function Update-Overlay {
     if ($null -ne $watch) {
       $postedAt = Format-BeijingDayShort $watch.observedAt
       $deadlineAt = Format-BeijingDayShort $watch.expiresAt
+      $script:tiboForecastDeadline = ConvertTo-DateTimeOffset $watch.expiresAt
       $timeLabel = if ($postedAt) { $postedAt } else { TextFrom64 '5b6F5a6a' }
       $tiboTimeLine.Text = "$(TextFrom64 '5Y+R6KGo') $timeLabel"
       $forecastLabel = if ($deadlineAt) { "$(TextFrom64 '6aKE5rWL') $(TextFrom64 '57qm')$deadlineAt" } else { TextFrom64 '6aKE5rWL5pe26Ze05b6F5a6a' }
       $tiboForecastLine.Text = $forecastLabel
     } else {
+      $script:tiboForecastDeadline = $null
       $tiboTimeLine.Text = "$(TextFrom64 '5Y+R6KGo') $(TextFrom64 '5b6F5a6a')"
       $tiboForecastLine.Text = ''
     }
+    Update-CompactTiboCountdown
   } catch {
     Set-QuotaPanel $mainPanel $mainPercentLine $mainResetLine $mainMeterSegments $null '#FF65DFFF' | Out-Null
     Set-QuotaPanel $weeklyPanel $weeklyPercentLine $weeklyResetLine $weeklyMeterSegments $null '#FFFFB84D' | Out-Null
@@ -673,10 +733,12 @@ function Update-Overlay {
     $weeklyPacePanel.Visibility = [Windows.Visibility]::Collapsed
     $weeklyPaceMarker.Margin = New-Object Windows.Thickness(80, 0, 0, 0)
     $unavailableLine.Visibility = [Windows.Visibility]::Visible
+    $script:tiboForecastDeadline = $null
     $tiboTimeLine.Text = "$(TextFrom64 '5Y+R6KGo') $(TextFrom64 '5b6F5a6a')"
     $tiboForecastLine.Text = ''
     $compactPercentLine.Text = [char]0x2014
     Set-CompactQuotaArc $null
+    Update-CompactTiboCountdown
     $script:expandedHeight = 124
   }
   Show-NearTopRight
@@ -703,19 +765,18 @@ $compactPanel.Add_MouseRightButtonDown({
   $eventArgs.Handled = $true
   Show-SkinPicker $compactPanel
 })
-$root.Add_MouseEnter({ $script:collapseAt = $null })
-$root.Add_MouseLeave({ if ($script:isExpanded) { $script:collapseAt = [DateTime]::UtcNow.AddSeconds(4) } })
+$root.Add_MouseLeave({
+  if ($script:isExpanded -and ($null -eq $script:skinPopup -or -not $script:skinPopup.IsOpen)) { Collapse-Overlay; Save-OverlayPosition }
+})
 $stateTimer = New-Object Windows.Threading.DispatcherTimer
 $stateTimer.Interval = [TimeSpan]::FromSeconds(20)
 $stateTimer.Add_Tick({ Update-Overlay })
-$collapseTimer = New-Object Windows.Threading.DispatcherTimer
-$collapseTimer.Interval = [TimeSpan]::FromMilliseconds(250)
-$collapseTimer.Add_Tick({
-  if ($script:isExpanded -and $null -ne $script:collapseAt -and [DateTime]::UtcNow -ge $script:collapseAt -and -not $root.IsMouseOver) { Collapse-Overlay; Save-OverlayPosition }
-})
-$window.Add_Closed({ $stateTimer.Stop(); $collapseTimer.Stop() })
+$countdownTimer = New-Object Windows.Threading.DispatcherTimer
+$countdownTimer.Interval = [TimeSpan]::FromMinutes(1)
+$countdownTimer.Add_Tick({ Update-CompactTiboCountdown })
+$window.Add_Closed({ $stateTimer.Stop(); $countdownTimer.Stop() })
 
 Update-Overlay
 $stateTimer.Start()
-$collapseTimer.Start()
+$countdownTimer.Start()
 [Windows.Threading.Dispatcher]::Run()
