@@ -37,7 +37,7 @@ function Format-BeijingShort([string]$instant) {
   try {
     $parsed = [DateTimeOffset]::Parse($instant, [Globalization.CultureInfo]::InvariantCulture)
     $local = [TimeZoneInfo]::ConvertTime($parsed, $script:beijingTimeZone)
-    return "$($local.ToString('ddd', $script:zhCulture))$($local.ToString('HH:mm'))"
+    return "$($local.ToString('ddd', $script:zhCulture))$($local.ToString('HH:mm').Replace(':', [char]0xFF1A))"
   } catch { return $null }
 }
 
@@ -51,10 +51,12 @@ function Format-BeijingShort([string]$instant) {
   <Border x:Name="Root" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="0">
     <Grid>
       <Grid x:Name="CompactPanel" Width="58" Height="58" Cursor="Hand">
-        <Ellipse Fill="#EA102538" Stroke="#FF65DFFF" StrokeThickness="2">
+        <Ellipse x:Name="CompactShell" Fill="#EA102538" Stroke="#FF65DFFF" StrokeThickness="2">
           <Ellipse.Effect><DropShadowEffect Color="#FF35D7FF" BlurRadius="12" ShadowDepth="0" Opacity="0.58"/></Ellipse.Effect>
         </Ellipse>
-        <Ellipse Margin="5" Fill="Transparent" Stroke="#665FDFFF" StrokeThickness="1"/>
+        <Ellipse x:Name="CompactTrack" Margin="5" Fill="Transparent" Stroke="#665FDFFF" StrokeThickness="4"/>
+        <Path x:Name="CompactQuotaArc" Fill="Transparent" Stroke="#FF65DFFF" StrokeThickness="4" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+        <TextBlock x:Name="CompactSkinGlyph" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" Foreground="#99B7F3FF" FontFamily="Segoe UI Symbol" FontSize="28" FontWeight="Bold" TextAlignment="Center" IsHitTestVisible="False"/>
         <TextBlock x:Name="CompactPercentLine" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" Foreground="#FFFFFFFF" FontSize="16" FontWeight="Bold" TextAlignment="Center"/>
       </Grid>
       <Grid x:Name="ExpandedPanel" Margin="5" Visibility="Collapsed">
@@ -84,7 +86,7 @@ function Format-BeijingShort([string]$instant) {
       <StackPanel x:Name="WeeklyPanel" Grid.Row="1" Margin="0,5,18,0" Visibility="Collapsed">
         <Grid>
           <Grid.ColumnDefinitions><ColumnDefinition Width="40"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-          <TextBlock x:Name="WeeklyLabel" FontSize="12.5" FontWeight="Bold" Foreground="#FFFFC766"/>
+          <Button x:Name="WeeklyUsageButton" Padding="0" HorizontalContentAlignment="Left" VerticalContentAlignment="Top" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Foreground="#FFFFC766" FontSize="12.5" FontWeight="Bold" Cursor="Hand"/>
           <Border Grid.Column="1" Height="9" Margin="2,2,0,0" Background="#41273F58" CornerRadius="5" Padding="2">
             <UniformGrid Columns="6" Rows="1">
               <Border x:Name="WeeklyMeter01" Margin="0,0,1,0" CornerRadius="2"/><Border x:Name="WeeklyMeter02" Margin="0,0,1,0" CornerRadius="2"/>
@@ -105,17 +107,12 @@ function Format-BeijingShort([string]$instant) {
         </Grid>
       </StackPanel>
       <TextBlock x:Name="UnavailableLine" Grid.Row="2" Margin="0,5,18,0" FontSize="12" FontWeight="Bold" Foreground="#FFFFFFFF" Visibility="Collapsed"/>
-      <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,5,0,0">
-        <Button x:Name="UsageButton" Padding="3,1" Background="#C0152639" BorderBrush="#5D8FEAFF" BorderThickness="1" Foreground="#FF8FEAFF" FontSize="11.5" FontWeight="Bold"><Button.Effect><DropShadowEffect Color="#FF000000" BlurRadius="4" ShadowDepth="1" Opacity="0.95"/></Button.Effect></Button>
-      </StackPanel>
-      <StackPanel Grid.Row="4" Margin="0,2,0,0">
-        <Grid>
-          <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-          <TextBlock x:Name="TiboTimeLine" Grid.Column="0" Foreground="#FFFFFFFF" FontSize="11.5" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
-          <Button x:Name="TiboDetailButton" Grid.Column="1" Margin="8,0,0,0" Padding="3,1" Background="#C0152639" BorderBrush="#5D91FFE2" BorderThickness="1" Foreground="#FF91FFE2" FontSize="12" FontWeight="Bold"><Button.Effect><DropShadowEffect Color="#FF000000" BlurRadius="4" ShadowDepth="1" Opacity="0.95"/></Button.Effect></Button>
-        </Grid>
-        <TextBlock x:Name="TiboForecastLine" Margin="0,2,0,0" Foreground="#FFFFE1A1" FontSize="10.5" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
-      </StackPanel>
+      <Grid Grid.Row="3" Margin="0,6,0,0">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+        <TextBlock x:Name="TiboTimeLine" Grid.Column="0" Foreground="#FFFFFFFF" FontSize="11.5" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
+        <Button x:Name="TiboDetailButton" Grid.Column="1" Margin="7,0,0,0" Padding="3,1" Background="#C0152639" BorderBrush="#5D91FFE2" BorderThickness="1" Foreground="#FF91FFE2" FontSize="11.5" FontWeight="Bold"><Button.Effect><DropShadowEffect Color="#FF000000" BlurRadius="4" ShadowDepth="1" Opacity="0.95"/></Button.Effect></Button>
+        <Button x:Name="SkinButton" Grid.Column="2" Margin="5,0,0,0" Padding="3,1" Background="#C0152639" BorderBrush="#5D8FEAFF" BorderThickness="1" Foreground="#FF8FEAFF" FontSize="11.5" FontWeight="Bold"><Button.Effect><DropShadowEffect Color="#FF000000" BlurRadius="4" ShadowDepth="1" Opacity="0.95"/></Button.Effect></Button>
+      </Grid>
       <Button x:Name="CloseButton" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" Panel.ZIndex="2" Width="18" Height="18" Margin="4,-2,-2,0" Content="x" FontFamily="Segoe UI" FontSize="11" FontWeight="Bold" Foreground="#FFFFFFFF" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" ToolTip="Close for this Codex session"><Button.Effect><DropShadowEffect Color="#FF000000" BlurRadius="4" ShadowDepth="1" Opacity="0.95"/></Button.Effect></Button>
       </Grid>
     </Grid>
@@ -127,6 +124,10 @@ $reader = New-Object System.Xml.XmlNodeReader $xaml
 $window = [Windows.Markup.XamlReader]::Load($reader)
 $root = $window.FindName('Root')
 $compactPanel = $window.FindName('CompactPanel')
+$compactShell = $window.FindName('CompactShell')
+$compactTrack = $window.FindName('CompactTrack')
+$compactQuotaArc = $window.FindName('CompactQuotaArc')
+$compactSkinGlyph = $window.FindName('CompactSkinGlyph')
 $compactPercentLine = $window.FindName('CompactPercentLine')
 $expandedPanel = $window.FindName('ExpandedPanel')
 $closeButton = $window.FindName('CloseButton')
@@ -135,33 +136,95 @@ $mainLabel = $window.FindName('MainLabel')
 $mainPercentLine = $window.FindName('MainPercentLine')
 $mainResetLine = $window.FindName('MainResetLine')
 $weeklyPanel = $window.FindName('WeeklyPanel')
-$weeklyLabel = $window.FindName('WeeklyLabel')
+$weeklyUsageButton = $window.FindName('WeeklyUsageButton')
 $weeklyPercentLine = $window.FindName('WeeklyPercentLine')
 $weeklyResetLine = $window.FindName('WeeklyResetLine')
 $weeklyPaceLine = $window.FindName('WeeklyPaceLine')
 $weeklyPaceMarker = $window.FindName('WeeklyPaceMarker')
 $unavailableLine = $window.FindName('UnavailableLine')
 $tiboTimeLine = $window.FindName('TiboTimeLine')
-$tiboForecastLine = $window.FindName('TiboForecastLine')
-$usageButton = $window.FindName('UsageButton')
 $tiboDetailButton = $window.FindName('TiboDetailButton')
+$skinButton = $window.FindName('SkinButton')
 $mainMeterSegments = @(1..6 | ForEach-Object { $window.FindName(('MainMeter{0:D2}' -f $_)) })
 $weeklyMeterSegments = @(1..6 | ForEach-Object { $window.FindName(('WeeklyMeter{0:D2}' -f $_)) })
 
 $closeButton.Content = [char]0x00D7
 $mainLabel.Text = TextFrom64 '5Li76aKd5bqm'
-$weeklyLabel.Text = TextFrom64 '5ZGo6aKd5bqm'
+$weeklyUsageButton.Content = TextFrom64 '5ZGo6aKd5bqm'
+$weeklyUsageButton.ToolTip = TextFrom64 '54K55Ye75omT5byA6aKd5bqm5oC76KeI'
 $unavailableLine.Text = TextFrom64 '5Liq5Lq66aKd5bqm5pqC5LiN5Y+v6K+7'
-$usageButton.Content = TextFrom64 '6aKd5bqm5oC76KeI'
 $tiboDetailButton.Content = TextFrom64 '6K+m5oOF'
+$skinButton.Content = TextFrom64 '5o2i6IKk'
 $closeButton.ToolTip = TextFrom64 '5YWz6Zet5pys5qyh5pi+56S6'
 
 $script:closedForCurrentProcess = $null
 $script:lastTargetProcess = $null
 $script:positionInitialised = $false
 $script:isExpanded = $false
-$script:expandedHeight = 188
+$script:expandedHeight = 166
 $script:collapseAt = $null
+$script:skinIndex = 0
+$script:skins = @(
+  [pscustomobject]@{ Key='digi-egg'; Name64='5pWw56CB6JuL'; Glyph64='4peI'; Shell='#EE102B3D'; Border='#FF66E4FF'; Track='#553B6B80'; Arc='#FF66E4FF'; Text='#FFFFFFFF'; Glyph='#8896F6FF'; Shadow='#FF31CBFF'; GlyphSize=29 },
+  [pscustomobject]@{ Key='dragon-orb'; Name64='5Zub5pif6b6Z54+g'; Glyph64='4piF4piF4piF4piF'; Shell='#F0E87918'; Border='#FFFFB12E'; Track='#66FFD08A'; Arc='#FFFFE16C'; Text='#FF281406'; Glyph='#D9C81919'; Shadow='#FFFF7A1A'; GlyphSize=10 },
+  [pscustomobject]@{ Key='cyber-core'; Name64='6LWb5Y2a5qC45b+D'; Glyph64='4pym'; Shell='#F00A1523'; Border='#FF00F5C8'; Track='#55486A80'; Arc='#FF00F5C8'; Text='#FFFFFFFF'; Glyph='#9938BDF8'; Shadow='#FF00F5C8'; GlyphSize=32 },
+  [pscustomobject]@{ Key='pixel-slime'; Name64='5YOP57Sg5Y+y6I6x5aeG'; Glyph64='4peP'; Shell='#EF173D35'; Border='#FF69F0A8'; Track='#5550A783'; Arc='#FF9BFF7A'; Text='#FFFFFFFF'; Glyph='#8876F7C0'; Shadow='#FF58E799'; GlyphSize=30 },
+  [pscustomobject]@{ Key='magic-planet'; Name64='6a2U5rOV5pif55CD'; Glyph64='4pyn'; Shell='#F02A1746'; Border='#FFC799FF'; Track='#556E4B88'; Arc='#FFFF8DEB'; Text='#FFFFFFFF'; Glyph='#99D8B4FF'; Shadow='#FFB46CFF'; GlyphSize=32 },
+  [pscustomobject]@{ Key='steam-gear'; Name64='6JK45rG96b2/6L2u'; Glyph64='4pqZ'; Shell='#F0372D25'; Border='#FFD7AA67'; Track='#556D5A43'; Arc='#FFFFC46E'; Text='#FFFFF6E8'; Glyph='#99E2BD84'; Shadow='#FFAD7439'; GlyphSize=29 },
+  [pscustomobject]@{ Key='deep-drop'; Name64='5rex5rW35rC05ru0'; Glyph64='4peG'; Shell='#F0082843'; Border='#FF58BFFF'; Track='#55436D8C'; Arc='#FF66E4FF'; Text='#FFFFFFFF'; Glyph='#8869B8FF'; Shadow='#FF2A8BFF'; GlyphSize=30 },
+  [pscustomobject]@{ Key='lava-sun'; Name64='54aU5bKp5aSq6Ziz'; Glyph64='4piA'; Shell='#F046160B'; Border='#FFFF6A2A'; Track='#557A3A28'; Arc='#FFFFD24C'; Text='#FFFFFFFF'; Glyph='#99FF9A36'; Shadow='#FFFF4C20'; GlyphSize=31 },
+  [pscustomobject]@{ Key='moon-cat'; Name64='5pyI5YWJ54yr55y8'; Glyph64='4peJ'; Shell='#F00F1734'; Border='#FF9AB8FF'; Track='#554B5D91'; Arc='#FFD9E5FF'; Text='#FFFFFFFF'; Glyph='#99A98AFF'; Shadow='#FF7D8FFF'; GlyphSize=31 },
+  [pscustomobject]@{ Key='quantum-hole'; Name64='6YeP5a2Q6buR5rSe'; Glyph64='4peO'; Shell='#F0040710'; Border='#FF9D72FF'; Track='#55432E69'; Arc='#FF43E7FF'; Text='#FFFFFFFF'; Glyph='#99C145FF'; Shadow='#FF733CFF'; GlyphSize=32 },
+  [pscustomobject]@{ Key='rainbow-candy'; Name64='5b2p6Jm557OW55CD'; Glyph64='4pym'; Shell='#F0392543'; Border='#FFFF89C8'; Track='#555C4E72'; Arc='#FF78E8FF'; Text='#FFFFFFFF'; Glyph='#99FFD36B'; Shadow='#FFFF71CB'; GlyphSize=31 },
+  [pscustomobject]@{ Key='space-pod'; Name64='5aSq56m66Iix'; Glyph64='4qyh'; Shell='#F012202D'; Border='#FF93B7CC'; Track='#55445C69'; Arc='#FFB8F2FF'; Text='#FFFFFFFF'; Glyph='#8898C7D9'; Shadow='#FF6CBEDB'; GlyphSize=29 }
+)
+
+function ConvertTo-Brush([string]$value) {
+  return (New-Object Windows.Media.BrushConverter).ConvertFromString($value)
+}
+
+function Apply-Skin {
+  $skin = $script:skins[$script:skinIndex]
+  $compactShell.Fill = ConvertTo-Brush $skin.Shell
+  $compactShell.Stroke = ConvertTo-Brush $skin.Border
+  $compactTrack.Stroke = ConvertTo-Brush $skin.Track
+  $compactQuotaArc.Stroke = ConvertTo-Brush $skin.Arc
+  $compactPercentLine.Foreground = ConvertTo-Brush $skin.Text
+  $compactSkinGlyph.Foreground = ConvertTo-Brush $skin.Glyph
+  $compactSkinGlyph.FontSize = [double]$skin.GlyphSize
+  $compactSkinGlyph.Text = TextFrom64 $skin.Glyph64
+  $compactShell.Effect.Color = [Windows.Media.ColorConverter]::ConvertFromString($skin.Shadow)
+  $skinName = TextFrom64 $skin.Name64
+  $skinButton.ToolTip = "$(TextFrom64 '5b2T5YmN55qu6IKk77ya')$skinName · $(TextFrom64 '54K55Ye75Iqk5o2i6IKk')"
+}
+
+function Set-CompactQuotaArc($remainingPercent) {
+  if ($null -eq $remainingPercent) { $compactQuotaArc.Data = $null; return }
+  try { $value = [Math]::Min(100, [Math]::Max(0, [double]$remainingPercent)) } catch { $compactQuotaArc.Data = $null; return }
+  if ($value -le 0) { $compactQuotaArc.Data = $null; return }
+  if ($value -ge 99.95) {
+    $circle = New-Object Windows.Media.EllipseGeometry
+    $circle.Center = New-Object Windows.Point -ArgumentList 29, 29
+    $circle.RadiusX = 24
+    $circle.RadiusY = 24
+    $compactQuotaArc.Data = $circle
+    return
+  }
+  $angle = 360 * $value / 100
+  $endRadians = (-90 + $angle) * [Math]::PI / 180
+  $figure = New-Object Windows.Media.PathFigure
+  $figure.StartPoint = New-Object Windows.Point -ArgumentList 29, 5
+  $figure.IsClosed = $false
+  $arc = New-Object Windows.Media.ArcSegment
+  $arc.Point = New-Object Windows.Point -ArgumentList (29 + (24 * [Math]::Cos($endRadians))), (29 + (24 * [Math]::Sin($endRadians)))
+  $arc.Size = New-Object Windows.Size -ArgumentList 24, 24
+  $arc.IsLargeArc = $angle -gt 180
+  $arc.SweepDirection = [Windows.Media.SweepDirection]::Clockwise
+  [void]$figure.Segments.Add($arc)
+  $geometry = New-Object Windows.Media.PathGeometry
+  [void]$geometry.Figures.Add($figure)
+  $compactQuotaArc.Data = $geometry
+}
 
 function Clamp-OverlayToWorkArea {
   $work = [System.Windows.SystemParameters]::WorkArea
@@ -200,7 +263,7 @@ function Collapse-Overlay {
 
 function Save-OverlayPosition {
   try {
-    $payload = [pscustomobject]@{ left = [Math]::Round($window.Left, 1); top = [Math]::Round($window.Top, 1); savedAt = [DateTime]::UtcNow.ToString('o') }
+    $payload = [pscustomobject]@{ left = [Math]::Round($window.Left, 1); top = [Math]::Round($window.Top, 1); skin = $script:skins[$script:skinIndex].Key; savedAt = [DateTime]::UtcNow.ToString('o') }
     $temporary = "$positionPath.$PID.tmp"
     $payload | ConvertTo-Json -Compress | Set-Content -LiteralPath $temporary -Encoding UTF8
     Move-Item -LiteralPath $temporary -Destination $positionPath -Force
@@ -213,6 +276,12 @@ function Restore-OverlayPosition {
   $work = [System.Windows.SystemParameters]::WorkArea
   try {
     $saved = Get-Content -LiteralPath $positionPath -Raw | ConvertFrom-Json
+    if (-not [string]::IsNullOrWhiteSpace([string]$saved.skin)) {
+      for ($index = 0; $index -lt $script:skins.Count; $index++) {
+        if ($script:skins[$index].Key -eq [string]$saved.skin) { $script:skinIndex = $index; break }
+      }
+    }
+    Apply-Skin
     $left = [double]$saved.left
     $top = [double]$saved.top
     if ($left -ge $work.Left -and $left -le ($work.Right - 40) -and $top -ge $work.Top -and $top -le ($work.Bottom - 40)) {
@@ -220,7 +289,7 @@ function Restore-OverlayPosition {
       $window.Top = $top
       return
     }
-  } catch { }
+  } catch { Apply-Skin }
   $target = Get-CodexProcess
   if ($null -ne $target) {
     $rect = New-Object CodexRadarNative+RECT
@@ -329,24 +398,23 @@ function Update-Overlay {
     $hasWeekly = Set-QuotaPanel $weeklyPanel $weeklyPercentLine $weeklyResetLine $weeklyMeterSegments $weeklyBucket '#FFFFD06B' $true
     $compactBucket = if ($hasWeekly) { $weeklyBucket } elseif ($hasMain) { $mainBucket } else { $null }
     $compactPercentLine.Text = if ($null -ne $compactBucket -and $null -ne $compactBucket.remainingPercent) { "$($compactBucket.remainingPercent)%" } else { ([char]0x2014) }
+    $compactRemaining = if ($null -ne $compactBucket) { $compactBucket.remainingPercent } else { $null }
+    Set-CompactQuotaArc $compactRemaining
     if ($hasWeekly) { Set-CurrentUsagePace $state.account.usagePace } else { $weeklyPaceLine.Text = ''; $weeklyPaceMarker.Margin = New-Object Windows.Thickness(80, 0, 0, 0) }
     if (-not $hasMain -and -not $hasWeekly) {
       $unavailableLine.Visibility = [Windows.Visibility]::Visible
-      $script:expandedHeight = 116
+      $script:expandedHeight = 86
     } else {
       $unavailableLine.Visibility = [Windows.Visibility]::Collapsed
-      $script:expandedHeight = if ($hasMain -and $hasWeekly) { 226 } elseif ($hasWeekly) { 188 } else { 164 }
+      $script:expandedHeight = if ($hasMain -and $hasWeekly) { 188 } elseif ($hasWeekly) { 154 } else { 118 }
     }
     $watch = $state.public.activeWatch
-    if ($null -ne $watch -and -not [string]::IsNullOrWhiteSpace([string]$watch.text) -and -not [string]::IsNullOrWhiteSpace([string]$watch.forecastWindow)) {
-      $postedAt = Format-BeijingShort ([string]$watch.observedAt)
+    if ($null -ne $watch) {
       $deadlineAt = Format-BeijingShort ([string]$watch.expiresAt)
-      $tiboTimeLine.Text = if ($postedAt) { "$(TextFrom64 'VGlib++8iA==')$postedAt$(TextFrom64 '77yJ77ya')" } else { TextFrom64 'VGlibyDph43nva7ml7bpl7TvvJo=' }
-      $tiboForecastLine.Text = if ($deadlineAt) { "$(TextFrom64 '6aKE6K6h')$deadlineAt$(TextFrom64 '5YmN77yI56ys5LiJ5pa56aKE5rWL77yJ')" } else { "$($watch.forecastWindow) $(TextFrom64 '77yI56ys5LiJ5pa56aKE5rWL77yJ')" }
-      $script:expandedHeight += 19
+      $timeLabel = if ($deadlineAt) { $deadlineAt } else { TextFrom64 '5b6F5a6a' }
+      $tiboTimeLine.Text = "$(TextFrom64 'VGlib+mHjee9ru+8iA==')$timeLabel$(TextFrom64 '77yJ')$(TextFrom64 '77ya6aKE5rWL5pe26Ze0')"
     } else {
-      $tiboTimeLine.Text = "$(TextFrom64 'VGlibyDph43nva7ml7bpl7TvvJo=')$(TextFrom64 '5peg')"
-      $tiboForecastLine.Text = ''
+      $tiboTimeLine.Text = "$(TextFrom64 'VGlib+mHjee9ru+8iA==')$(TextFrom64 '5peg')$(TextFrom64 '77yJ')"
     }
   } catch {
     Set-QuotaPanel $mainPanel $mainPercentLine $mainResetLine $mainMeterSegments $null '#FF65DFFF' | Out-Null
@@ -354,10 +422,10 @@ function Update-Overlay {
     $weeklyPaceLine.Text = ''
     $weeklyPaceMarker.Margin = New-Object Windows.Thickness(80, 0, 0, 0)
     $unavailableLine.Visibility = [Windows.Visibility]::Visible
-    $tiboTimeLine.Text = "$(TextFrom64 'VGlibyDph43nva7ml7bpl7TvvJo=')$(TextFrom64 '5peg')"
-    $tiboForecastLine.Text = ''
+    $tiboTimeLine.Text = "$(TextFrom64 'VGlib+mHjee9ru+8iA==')$(TextFrom64 '5peg')$(TextFrom64 '77yJ')"
     $compactPercentLine.Text = [char]0x2014
-    $script:expandedHeight = 116
+    Set-CompactQuotaArc $null
+    $script:expandedHeight = 86
   }
   Show-NearTopRight
 }
@@ -367,13 +435,23 @@ $closeButton.Add_Click({
   Collapse-Overlay
   $window.Hide()
 })
-$usageButton.Add_Click({ Start-Process 'http://127.0.0.1:43721/usage.html' })
+$weeklyUsageButton.Add_Click({ Start-Process 'http://127.0.0.1:43721/usage.html' })
 $tiboDetailButton.Add_Click({ Start-Process 'http://127.0.0.1:43721/' })
+$skinButton.Add_Click({
+  $script:skinIndex = ($script:skinIndex + 1) % $script:skins.Count
+  Apply-Skin
+  Save-OverlayPosition
+})
 $root.Add_MouseLeftButtonDown({
-  if (-not $closeButton.IsMouseOver -and -not $usageButton.IsMouseOver -and -not $tiboDetailButton.IsMouseOver) { try { $window.DragMove() } catch { } }
+  if (-not $closeButton.IsMouseOver -and -not $weeklyUsageButton.IsMouseOver -and -not $tiboDetailButton.IsMouseOver -and -not $skinButton.IsMouseOver) { try { $window.DragMove() } catch { } }
 })
 $root.Add_MouseLeftButtonUp({ Save-OverlayPosition })
 $compactPanel.Add_MouseEnter({ Expand-Overlay })
+$compactPanel.Add_MouseRightButtonDown({
+  $script:skinIndex = ($script:skinIndex + 1) % $script:skins.Count
+  Apply-Skin
+  Save-OverlayPosition
+})
 $root.Add_MouseEnter({ $script:collapseAt = $null })
 $root.Add_MouseLeave({ if ($script:isExpanded) { $script:collapseAt = [DateTime]::UtcNow.AddSeconds(4) } })
 $stateTimer = New-Object Windows.Threading.DispatcherTimer
