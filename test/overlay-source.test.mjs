@@ -31,7 +31,7 @@ test("小圆球按剩余额度绘制圆环", () => {
   assert.match(source, /Set-CompactQuotaArc \$compactRemaining/);
 });
 
-test("展开浮窗离开即收起，小球下方显示 Tibo 预测上限倒计时", () => {
+test("展开浮窗在远离后延时收起，小球下方显示 Tibo 预测上限倒计时", () => {
   assert.match(source, /x:Name="CompactTiboCountdownBadge"/);
   assert.match(source, /x:Name="CompactTiboCountdownLine"/);
   assert.match(source, /function Update-CompactTiboCountdown/);
@@ -41,12 +41,16 @@ test("展开浮窗离开即收起，小球下方显示 Tibo 预测上限倒计�
   assert.match(source, /\$compactTiboCountdownLine\.Text = "\$\(TextFrom64 '6Iez5aSa'\)\$\(\$remainingHours\.ToString\('0'\)\)h"/);
   assert.doesNotMatch(source, /x:Name="CompactTiboCaption"/, "小球下方不应堆叠额外说明");
   assert.match(source, /\$countdownTimer\.Interval = \[TimeSpan\]::FromMinutes\(1\)/, "倒计时应本地每分钟更新");
-  assert.match(source, /\$root\.Add_MouseLeave\(\{[\s\S]*?Collapse-Overlay; Save-OverlayPosition[\s\S]*?\}\)/);
   assert.match(source, /public static extern bool GetCursorPos\(out POINT point\)/, "应读取系统指针坐标");
   assert.match(source, /function Test-CursorInsideOverlay/);
-  assert.match(source, /-and -not \(Test-CursorInsideOverlay\)/, "内部视图切换的假 MouseLeave 不应收起浮窗");
+  assert.match(source, /\$script:hoverExitPaddingPx = 24/, "指针应离开窗口外围一定距离");
+  assert.match(source, /\$script:hoverExitDelay = \[TimeSpan\]::FromMilliseconds\(1500\)/, "远离后应延时 1\.5 秒");
+  assert.match(source, /Test-CursorInsideOverlay \$script:hoverExitPaddingPx/);
+  assert.match(source, /\$script:outsideExpandedSince = \[DateTime\]::UtcNow/);
+  assert.match(source, /\$hoverExitTimer\.Interval = \[TimeSpan\]::FromMilliseconds\(100\)/);
+  assert.match(source, /\[DateTime\]::UtcNow - \$script:outsideExpandedSince[\s\S]*?Collapse-Overlay; Save-OverlayPosition/);
+  assert.doesNotMatch(source, /\$root\.Add_MouseLeave/, "不应再由灵敏的 MouseLeave 直接收起");
   assert.doesNotMatch(source, /AddSeconds\(4\)/, "离开不应再等待 4 秒");
-  assert.doesNotMatch(source, /\$collapseTimer/, "不应保留延时收起计时器");
   assert.match(source, /\$compactTiboCountdownBadge\.BeginAnimation/, "倒计时标签应有脉冲效果");
 });
 

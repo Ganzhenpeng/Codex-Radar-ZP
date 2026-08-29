@@ -225,6 +225,9 @@ $script:lastTargetProcess = $null
 $script:positionInitialised = $false
 $script:isExpanded = $false
 $script:expandedHeight = 166
+$script:outsideExpandedSince = $null
+$script:hoverExitPaddingPx = 24
+$script:hoverExitDelay = [TimeSpan]::FromMilliseconds(1500)
 $script:tiboForecastDeadline = $null
 $script:skinIndex = 0
 $script:skinPopup = $null
@@ -409,7 +412,8 @@ function Initialize-SkinPicker {
   $popup.AllowsTransparency = $true
   $popup.StaysOpen = $false
   $popup.Placement = [Windows.Controls.Primitives.PlacementMode]::Bottom
-  $popup.Add_Closed({ if ($script:isExpanded -and -not $root.IsMouseOver) { Collapse-Overlay; Save-OverlayPosition } })
+  $popup.Add_Opened({ $script:outsideExpandedSince = $null })
+  $popup.Add_Closed({ $script:outsideExpandedSince = $null })
 
   $frame = New-Object Windows.Controls.Border
   $frame.Background = ConvertTo-Brush '#FA08131D'
@@ -523,15 +527,17 @@ function Apply-OverlayMode {
 
 function Expand-Overlay {
   $script:isExpanded = $true
+  $script:outsideExpandedSince = $null
   Apply-OverlayMode
 }
 
 function Collapse-Overlay {
   $script:isExpanded = $false
+  $script:outsideExpandedSince = $null
   Apply-OverlayMode
 }
 
-function Test-CursorInsideOverlay {
+function Test-CursorInsideOverlay([int]$paddingPx = 0) {
   try {
     $handle = (New-Object Windows.Interop.WindowInteropHelper -ArgumentList $window).Handle
     if ($handle -eq [IntPtr]::Zero) { return $root.IsMouseOver }
@@ -539,7 +545,7 @@ function Test-CursorInsideOverlay {
     $bounds = New-Object CodexRadarNative+RECT
     if (-not [CodexRadarNative]::GetCursorPos([ref]$cursor)) { return $root.IsMouseOver }
     if (-not [CodexRadarNative]::GetWindowRect($handle, [ref]$bounds)) { return $root.IsMouseOver }
-    return $cursor.X -ge $bounds.Left -and $cursor.X -lt $bounds.Right -and $cursor.Y -ge $bounds.Top -and $cursor.Y -lt $bounds.Bottom
+    return $cursor.X -ge ($bounds.Left - $paddingPx) -and $cursor.X -lt ($bounds.Right + $paddingPx) -and $cursor.Y -ge ($bounds.Top - $paddingPx) -and $cursor.Y -lt ($bounds.Bottom + $paddingPx)
   } catch {
     return $root.IsMouseOver
   }
@@ -769,18 +775,27 @@ $compactPanel.Add_MouseRightButtonDown({
   $eventArgs.Handled = $true
   Show-SkinPicker $compactPanel
 })
-$root.Add_MouseLeave({
-  if ($script:isExpanded -and ($null -eq $script:skinPopup -or -not $script:skinPopup.IsOpen) -and -not (Test-CursorInsideOverlay)) { Collapse-Overlay; Save-OverlayPosition }
-})
 $stateTimer = New-Object Windows.Threading.DispatcherTimer
 $stateTimer.Interval = [TimeSpan]::FromSeconds(20)
 $stateTimer.Add_Tick({ Update-Overlay })
 $countdownTimer = New-Object Windows.Threading.DispatcherTimer
 $countdownTimer.Interval = [TimeSpan]::FromMinutes(1)
 $countdownTimer.Add_Tick({ Update-CompactTiboCountdown })
-$window.Add_Closed({ $stateTimer.Stop(); $countdownTimer.Stop() })
+$hoverExitTimer = New-Object Windows.Threading.DispatcherTimer
+$hoverExitTimer.Interval = [TimeSpan]::FromMilliseconds(100)
+$hoverExitTimer.Add_Tick({
+  if (-not $script:isExpanded) { $script:outsideExpandedSince = $null; return }
+  if (($null -ne $script:skinPopup -and $script:skinPopup.IsOpen) -or (Test-CursorInsideOverlay $script:hoverExitPaddingPx)) {
+    $script:outsideExpandedSince = $null
+    return
+  }
+  if ($null -eq $script:outsideExpandedSince) { $script:outsideExpandedSince = [DateTime]::UtcNow; return }
+  if (([DateTime]::UtcNow - $script:outsideExpandedSince) -ge $script:hoverExitDelay) { Collapse-Overlay; Save-OverlayPosition }
+})
+$window.Add_Closed({ $stateTimer.Stop(); $countdownTimer.Stop(); $hoverExitTimer.Stop() })
 
 Update-Overlay
 $stateTimer.Start()
 $countdownTimer.Start()
+$hoverExitTimer.Start()
 [Windows.Threading.Dispatcher]::Run()
