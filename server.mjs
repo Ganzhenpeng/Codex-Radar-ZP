@@ -63,7 +63,31 @@ async function loadState() {
   await fs.mkdir(DATA_DIR, { recursive: true });
   try {
     const parsed = JSON.parse(await fs.readFile(STATE_PATH, "utf8"));
-    return { ...initialState(), ...parsed, account: { ...initialState().account, ...parsed.account }, public: { ...initialState().public, ...parsed.public }, projectUsage: { ...initialState().projectUsage, ...parsed.projectUsage } };
+    const cachedPublic = { ...initialState().public, ...parsed.public };
+    // Persisted state is intentionally a normalised, privacy-minimal cache. Re-run
+    // that normalisation on startup so a new derived display field still appears
+    // when the Tracker correctly answers the next network check with 304 Not Modified.
+    const rehydrated = normalisePublicStatus({ data: {
+      latest_reset: cachedPublic.latestReset ? {
+        id: cachedPublic.latestReset.id, reset_type: cachedPublic.latestReset.type,
+        text: cachedPublic.latestReset.text, announced_at: cachedPublic.latestReset.occurredAt,
+        source: { author: cachedPublic.latestReset.source?.author, url: cachedPublic.latestReset.source?.url },
+      } : null,
+      active_watch: cachedPublic.activeWatch ? {
+        id: cachedPublic.activeWatch.id, level: cachedPublic.activeWatch.level,
+        reset_chance_percent: cachedPublic.activeWatch.probability, forecast_window: cachedPublic.activeWatch.forecastWindow,
+        observed_at: cachedPublic.activeWatch.observedAt, expires_at: cachedPublic.activeWatch.expiresAt,
+        text: cachedPublic.activeWatch.text,
+        source: { author: cachedPublic.activeWatch.source?.author, url: cachedPublic.activeWatch.source?.url },
+      } : null,
+      stats: cachedPublic.stats,
+    } });
+    return {
+      ...initialState(), ...parsed,
+      account: { ...initialState().account, ...parsed.account },
+      public: { ...cachedPublic, ...rehydrated },
+      projectUsage: { ...initialState().projectUsage, ...parsed.projectUsage },
+    };
   } catch (error) {
     if (error.code !== "ENOENT") await log("state_cache_invalid", { category: "invalid_json" });
     return initialState();

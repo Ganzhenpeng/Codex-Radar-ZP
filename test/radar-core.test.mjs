@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  derivedStatus, detectAccountChange, nextEligibleCheck, normaliseAccount, normaliseHistory,
+  derivedStatus, detectAccountChange, earliestForecastEstimate, localTranscriptTranslation, nextEligibleCheck, normaliseAccount, normaliseHistory,
   normalisePublicStatus, schedulerDecision, selectCodexQuotaWindows, shouldCheckPublic, signalType, weeklyUsagePace, updateProjectUsage,
 } from "../lib/radar-core.mjs";
 
@@ -31,10 +31,19 @@ test("Tracker 信号归类与原帖证据保持分离", () => {
   assert.equal(signalType("banked"), "banked_reset");
   assert.equal(signalType("active_watch"), "watch");
   assert.equal(signalType("unexpected"), "other");
-  const parsed = normalisePublicStatus({ data: { latest_reset: { id: 1, reset_type: "regular", text: "reset", announced_at: "2026-08-01T00:00:00Z", source: { url: "https://x.example/1" } }, active_watch: { level: "elevated", reset_chance_percent: 45, text: "watch", source: { url: "https://x.example/2" } } } });
+  const parsed = normalisePublicStatus({ data: { latest_reset: { id: 1, reset_type: "regular", text: "reset", announced_at: "2026-08-01T00:00:00Z", source: { url: "https://x.example/1" } }, active_watch: { level: "elevated", reset_chance_percent: 45, forecast_window: "by end of sunday", observed_at: "2026-08-29T21:23:38Z", text: "This celebration is moved to tomorrow as the button was already pressed today.", source: { url: "https://x.example/2" } } } });
   assert.equal(parsed.latestReset.type, "full_reset");
   assert.equal(parsed.activeWatch.evidence, "第三方预测（非 OpenAI 承诺）");
+  assert.equal(parsed.activeWatch.earliestAt, "2026-08-30T07:00:00.000Z", "周日结束窗口的最早估算是旧金山周日零点");
+  assert.match(parsed.activeWatch.translationZh, /改到明天/);
   assert.equal(normaliseHistory({ data: [{ id: 2, reset_type: "banked", text: "card" }] })[0].type, "banked_reset");
+});
+
+test("最早估算只从可解释的 Tracker 周内窗口导出，并保留夏令时", () => {
+  assert.equal(earliestForecastEstimate("by end of sunday", "2026-08-29T21:23:38Z"), "2026-08-30T07:00:00.000Z");
+  assert.equal(earliestForecastEstimate("by end of sunday", "2026-11-06T21:23:38Z"), "2026-11-08T08:00:00.000Z", "冬令时零点应自动改为 UTC-8");
+  assert.equal(earliestForecastEstimate("about tomorrow", "2026-08-29T21:23:38Z"), null, "无法解释的文字不应伪造精确最早时间");
+  assert.equal(localTranscriptTranslation("a brand new message"), null, "未知新帖不应编造中文译文");
 });
 
 test("额度前后快照区别自然恢复、提前恢复与重置卡增加", () => {

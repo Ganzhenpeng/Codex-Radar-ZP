@@ -208,7 +208,7 @@ $closeButton.Content = [char]0x00D7
 $mainLabel.Text = TextFrom64 '5Li76aKd5bqm'
 $weeklyUsageButton.Content = TextFrom64 '5ZGo6aKd5bqm'
 $weeklyUsageButton.ToolTip = TextFrom64 '54K55Ye75omT5byA6aKd5bqm5oC76KeI'
-$compactTiboCountdownBadge.ToolTip = TextFrom64 'VGlib+eJqeeQhumHjee9ru+8iOesrOS4ieaWuemihOa1i++8ieacgOWkmuWJqeS9meaXtumXtA=='
+$compactTiboCountdownBadge.ToolTip = TextFrom64 'VGlibyDniannkIbph43nva7vvJrmmL7npLrnrKzkuInmlrnpooTmtYvnmoTmnIDml6nlj6/og73ml7bpl7TvvIzpnZ7lrpjmlrnmib/or7rjgII='
 $unavailableLine.Text = TextFrom64 '5Liq5Lq66aKd5bqm5pqC5LiN5Y+v6K+7'
 $tiboDetailButton.Content = TextFrom64 '6K+m5oOF'
 $skinButton.Content = [char]0x2726
@@ -224,7 +224,7 @@ $script:expandedHeight = 166
 $script:outsideExpandedSince = $null
 $script:hoverExitPaddingPx = 24
 $script:hoverExitDelay = [TimeSpan]::FromMilliseconds(1500)
-$script:tiboForecastDeadline = $null
+$script:tiboEarliestEstimate = $null
 $script:skinIndex = 0
 $script:skinPopup = $null
 $script:skinButtons = @()
@@ -649,13 +649,13 @@ function Set-CurrentUsagePace($pace) {
 
 function Update-CompactTiboCountdown {
   $wasVisible = $compactTiboCountdownBadge.Visibility -eq [Windows.Visibility]::Visible
-  if ($null -eq $script:tiboForecastDeadline) {
+  if ($null -eq $script:tiboEarliestEstimate) {
     $compactTiboCountdownLine.Text = ''
     $compactTiboCountdownBadge.Visibility = [Windows.Visibility]::Collapsed
   } else {
-    $remaining = $script:tiboForecastDeadline.ToUniversalTime() - [DateTimeOffset]::UtcNow
+    $remaining = $script:tiboEarliestEstimate.ToUniversalTime() - [DateTimeOffset]::UtcNow
     $remainingHours = [Math]::Max(0, [Math]::Ceiling($remaining.TotalHours))
-    $compactTiboCountdownLine.Text = "$(TextFrom64 '6Iez5aSa')$($remainingHours.ToString('0'))h"
+    $compactTiboCountdownLine.Text = "$(TextFrom64 '5pyA5pep')$($remainingHours.ToString('0'))h"
     if ($remaining.TotalSeconds -le 0) {
       $compactTiboCountdownLine.Foreground = '#FFFF9A72'
       $compactTiboCountdownBadge.BorderBrush = '#CCFF8C78'
@@ -720,14 +720,14 @@ function Update-Overlay {
     $watch = $state.public.activeWatch
     if ($null -ne $watch) {
       $postedAt = Format-BeijingMonthDayShort $watch.observedAt
-      $deadlineAt = Format-BeijingMonthDayShort $watch.expiresAt
-      $script:tiboForecastDeadline = ConvertTo-DateTimeOffset $watch.expiresAt
+      $earliestAt = Format-BeijingMonthDayShort $watch.earliestAt
+      $script:tiboEarliestEstimate = ConvertTo-DateTimeOffset $watch.earliestAt
       $timeLabel = if ($postedAt) { $postedAt } else { TextFrom64 '5b6F5a6a' }
       $tiboLabel.Text = "$(TextFrom64 'VGlib+eJqeeQhumHjee9rg==')$([char]0xFF1A)$timeLabel $(TextFrom64 '5Y+R6KGo')"
-      $forecastLabel = if ($deadlineAt) { "$(TextFrom64 '57qm') $deadlineAt $(TextFrom64 '6YeN572u')" } else { TextFrom64 '6aKE5rWL5pe26Ze05b6F5a6a' }
+      $forecastLabel = if ($earliestAt) { "$(TextFrom64 '5pyA5pep') $(TextFrom64 '57qm') $earliestAt $(TextFrom64 '6YeN572u')" } else { TextFrom64 '5pyA5pep5pe26Ze05pyq5o+Q5L6b' }
       $tiboForecastLine.Text = $forecastLabel
     } else {
-      $script:tiboForecastDeadline = $null
+      $script:tiboEarliestEstimate = $null
       $tiboLabel.Text = "$(TextFrom64 'VGlib+eJqeeQhumHjee9rg==')$([char]0xFF1A)$(TextFrom64 '5peg')"
       $tiboForecastLine.Text = ''
     }
@@ -739,7 +739,7 @@ function Update-Overlay {
     $weeklyPacePanel.Visibility = [Windows.Visibility]::Collapsed
     $weeklyPaceMarker.Margin = New-Object Windows.Thickness(80, 0, 0, 0)
     $unavailableLine.Visibility = [Windows.Visibility]::Visible
-    $script:tiboForecastDeadline = $null
+    $script:tiboEarliestEstimate = $null
     $tiboLabel.Text = "$(TextFrom64 'VGlib+eJqeeQhumHjee9rg==')$([char]0xFF1A)$(TextFrom64 '5peg')"
     $tiboForecastLine.Text = ''
     $compactPercentLine.Text = [char]0x2014

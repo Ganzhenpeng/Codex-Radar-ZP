@@ -24,10 +24,12 @@ function renderAccount(account) {
 function renderPublic(publicData) {
   health($("public-health"), publicData.health);
   const latest = publicData.latestReset, watch = publicData.activeWatch;
-  const block = (label, title, body, source) => `<div class="signal"><div class="signal-label">${label}</div><h3>${safe(title)}</h3><p>${safe(body || "无正文")}</p>${source?.url ? `<a href="${safe(source.url)}" target="_blank" rel="noreferrer">打开原帖链接 ↗</a>` : ""}</div>`;
-  const latestBlock = latest ? block(latest.type === "banked_reset" ? "公开重置卡公告" : "公开全量重置公告", `北京时间：${fmt(latest.occurredAt)} · 旧金山：${fmt(latest.occurredAt, la)}`, latest.text, latest.source) : `<p class="empty">尚无可用公开重置公告。</p>`;
-  const watchTiming = watch ? `Tibo（${fmtBjShort(watch.observedAt) ?? "发帖时间未提供"}）：${watch.expiresAt ? `预计 ${fmtBjShort(watch.expiresAt)} 前（北京时间）` : "预计时间未提供"}` : "";
-  const watchBlock = watch ? block(`第三方预测 · ${watch.probability ?? "—"}%`, `${watchTiming}${watch.forecastWindow ? ` · 原始窗口：${safe(watch.forecastWindow)}` : ""}`, watch.text, watch.source) : `<p class="watch-empty">当前没有活跃的第三方观察信号。</p>`;
+  const transcript = (body, translation) => `<div class="transcript"><div class="transcript-title">英文原文（Tracker 转录）</div><p class="transcript-body">${safe(body || "无正文")}</p><div class="transcript-title translation-title">中文译文（本地离线翻译，可能不准确）</div><p class="transcript-body translation">${safe(translation || "这条新原帖尚无可用的本地中文译文；请以英文原文为准。")}</p></div>`;
+  const block = (label, title, body, source, translation) => `<div class="signal"><div class="signal-label">${label}</div><h3>${safe(title)}</h3>${transcript(body, translation)}${source?.url ? `<a href="${safe(source.url)}" target="_blank" rel="noreferrer">打开原帖链接 ↗</a>` : ""}</div>`;
+  const latestBlock = latest ? block(latest.type === "banked_reset" ? "公开重置卡公告" : "公开全量重置公告", `北京时间：${fmt(latest.occurredAt)} · 旧金山：${fmt(latest.occurredAt, la)}`, latest.text, latest.source, latest.translationZh) : `<p class="empty">尚无可用公开重置公告。</p>`;
+  const watchTiming = watch ? `Tibo（${fmtBjShort(watch.observedAt) ?? "发帖时间未提供"}）：${watch.earliestAt ? `最早估算 ${fmtBjShort(watch.earliestAt)}（北京时间）` : "最早时间未提供"}` : "";
+  const watchWindow = watch?.forecastWindow ? ` · 原始窗口：${safe(watch.forecastWindow)}${watch.expiresAt ? `（Tracker 截止 ${fmtBjShort(watch.expiresAt)}）` : ""}` : "";
+  const watchBlock = watch ? block(`第三方预测 · ${watch.probability ?? "—"}%`, `${watchTiming}${watchWindow}`, watch.text, watch.source, watch.translationZh) : `<p class="watch-empty">当前没有活跃的第三方观察信号。</p>`;
   $("public-content").innerHTML = `${latestBlock}${watchBlock}`;
 }
 

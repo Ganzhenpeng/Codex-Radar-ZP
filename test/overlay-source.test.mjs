@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const source = await readFile(new URL("../scripts/codex-radar-overlay.ps1", import.meta.url), "utf8");
+const panelSource = await readFile(new URL("../public/app.js", import.meta.url), "utf8");
 const installerSource = await readFile(new URL("../scripts/install-autostart.ps1", import.meta.url), "utf8");
 const detachedLauncherSource = await readFile(new URL("../scripts/start-detached-radar.ps1", import.meta.url), "utf8");
 
@@ -46,14 +47,14 @@ test("自启动安装器会在当前登录会话立即启动并验证雷达", ()
   assert.match(detachedLauncherSource, /\[uint32\]0x09000000/);
 });
 
-test("展开浮窗在远离后延时收起，小球下方显示 Tibo 预测上限倒计时", () => {
+test("展开浮窗在远离后延时收起，小球下方显示 Tibo 最早估算倒计时", () => {
   assert.match(source, /x:Name="CompactTiboCountdownBadge"/);
   assert.match(source, /x:Name="CompactTiboCountdownLine"/);
   assert.match(source, /function Update-CompactTiboCountdown/);
-  assert.match(source, /\$script:tiboForecastDeadline = ConvertTo-DateTimeOffset \$watch\.expiresAt/);
-  assert.match(source, /\$remaining = \$script:tiboForecastDeadline\.ToUniversalTime\(\) - \[DateTimeOffset\]::UtcNow/);
-  assert.match(source, /\$remainingHours = \[Math\]::Max\(0, \[Math\]::Ceiling\(\$remaining\.TotalHours\)\)/, "至多小时应向上取整");
-  assert.match(source, /\$compactTiboCountdownLine\.Text = "\$\(TextFrom64 '6Iez5aSa'\)\$\(\$remainingHours\.ToString\('0'\)\)h"/);
+  assert.match(source, /\$script:tiboEarliestEstimate = ConvertTo-DateTimeOffset \$watch\.earliestAt/);
+  assert.match(source, /\$remaining = \$script:tiboEarliestEstimate\.ToUniversalTime\(\) - \[DateTimeOffset\]::UtcNow/);
+  assert.match(source, /\$remainingHours = \[Math\]::Max\(0, \[Math\]::Ceiling\(\$remaining\.TotalHours\)\)/, "最早小时应向上取整");
+  assert.match(source, /\$compactTiboCountdownLine\.Text = "\$\(TextFrom64 '5pyA5pep'\)\$\(\$remainingHours\.ToString\('0'\)\)h"/);
   assert.doesNotMatch(source, /x:Name="CompactTiboCaption"/, "小球下方不应堆叠额外说明");
   assert.match(source, /\$countdownTimer\.Interval = \[TimeSpan\]::FromMinutes\(1\)/, "倒计时应本地每分钟更新");
   assert.match(source, /public static extern bool GetCursorPos\(out POINT point\)/, "应读取系统指针坐标");
@@ -67,6 +68,15 @@ test("展开浮窗在远离后延时收起，小球下方显示 Tibo 预测上�
   assert.doesNotMatch(source, /\$root\.Add_MouseLeave/, "不应再由灵敏的 MouseLeave 直接收起");
   assert.doesNotMatch(source, /AddSeconds\(4\)/, "离开不应再等待 4 秒");
   assert.match(source, /\$compactTiboCountdownBadge\.BeginAnimation/, "倒计时标签应有脉冲效果");
+});
+
+test("详情页保留 Tracker 英文转录、原帖链接和中文离线译文", () => {
+  assert.match(panelSource, /英文原文（Tracker 转录）/);
+  assert.match(panelSource, /中文译文（本地离线翻译，可能不准确）/);
+  assert.match(panelSource, /打开原帖链接/);
+  assert.match(panelSource, /translationZh/);
+  assert.match(panelSource, /最早估算/);
+  assert.match(panelSource, /Tracker 截止/);
 });
 
 test("周额度文字承接额度详情入口，Tibo 栏与周额度统一排版", () => {
@@ -92,7 +102,7 @@ test("周额度文字承接额度详情入口，Tibo 栏与周额度统一排版
   assert.match(source, /\[char\]0xFF1A/);
   assert.doesNotMatch(source, /tiboDisplayOverrides/, "示例时间不得写死为事件覆盖");
   assert.match(source, /\$timeLabel = if \(\$postedAt\)/, "发表时间必须来自当前信号");
-  assert.match(source, /\$forecastLabel = if \(\$deadlineAt\)/, "预测时间必须来自当前预测窗口");
+  assert.match(source, /\$forecastLabel = if \(\$earliestAt\)/, "预测时间必须来自当前预测窗口的最早估算");
   assert.match(source, /\$tiboLabel\.Text = "\$\(TextFrom64 'VGlib\+eJqeeQhumHjee9rg=='\)\$\(\[char\]0xFF1A\)\$timeLabel \$\(TextFrom64 '5Y\+R6KGo'\)"/, "第一行应为标题、时间和发表");
-  assert.match(source, /\$\(TextFrom64 '57qm'\) \$deadlineAt \$\(TextFrom64 '6YeN572u'\)/, "第二行应为约、时间和重置");
+  assert.match(source, /\$\(TextFrom64 '5pyA5pep'\) \$\(TextFrom64 '57qm'\) \$earliestAt \$\(TextFrom64 '6YeN572u'\)/, "第二行应为最早约、时间和重置");
 });
