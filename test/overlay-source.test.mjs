@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 
 const source = await readFile(new URL("../scripts/codex-radar-overlay.ps1", import.meta.url), "utf8");
 const installerSource = await readFile(new URL("../scripts/install-autostart.ps1", import.meta.url), "utf8");
+const detachedLauncherSource = await readFile(new URL("../scripts/start-detached-radar.ps1", import.meta.url), "utf8");
 
 test("浮窗提供 12 套可持久化皮肤", () => {
   const names = [...source.matchAll(/Name64='([^']+)'/g)].map((match) => Buffer.from(match[1], "base64").toString("utf8"));
@@ -36,10 +37,13 @@ test("自启动安装器会在当前登录会话立即启动并验证雷达", ()
   assert.match(installerSource, /function Test-RadarRuntime/);
   assert.match(installerSource, /function Wait-RadarRuntime/);
   assert.match(installerSource, /Start-ScheduledTask -TaskName \$name/);
-  assert.match(installerSource, /New-Object -ComObject Shell\.Application/);
-  assert.match(installerSource, /\$explorerShell\.ShellExecute\(\$startupShortcut, '', \$root, 'open', 0\)/, "Startup 后备启动应由 Explorer Shell 脱离 Codex 进程树");
+  assert.match(installerSource, /\$detachedStartScript/);
+  assert.match(installerSource, /-File `"\$detachedStartScript`"/);
   assert.match(installerSource, /Invoke-WebRequest[\s\S]*?127\.0\.0\.1:43721\/healthz/);
   assert.match(installerSource, /\$overlayScript/);
+  assert.match(detachedLauncherSource, /CREATE_BREAKAWAY_FROM_JOB/);
+  assert.match(detachedLauncherSource, /CreateProcess/);
+  assert.match(detachedLauncherSource, /\[uint32\]0x09000000/);
 });
 
 test("展开浮窗在远离后延时收起，小球下方显示 Tibo 预测上限倒计时", () => {
