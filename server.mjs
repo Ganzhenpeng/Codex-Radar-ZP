@@ -8,6 +8,7 @@ import {
   derivedStatus, detectAccountChange, nextEligibleCheck, normaliseAccount, normaliseHistory,
   normalisePublicStatus, schedulerDecision, shouldCheckPublic, shortHash, updateProjectUsage,
 } from "./lib/radar-core.mjs";
+import { resolveCodexExecutable } from "./lib/codex-executable.mjs";
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(ROOT, "data");
@@ -148,8 +149,9 @@ class AppServerClient {
   async connect() {
     if (this.child && !this.child.killed && this.initialized) return;
     this.close();
-    const executable = process.env.CODEX_BIN || "codex";
-    this.child = spawn(executable, ["app-server"], { stdio: ["pipe", "pipe", "pipe"], windowsHide: true });
+    const target = await resolveCodexExecutable();
+    await log("app_server_executable", { source: target.source });
+    this.child = spawn(target.executable, ["app-server"], { stdio: ["pipe", "pipe", "pipe"], windowsHide: true });
     this.child.stdout.setEncoding("utf8");
     this.child.stdout.on("data", (chunk) => this.onData(chunk));
     this.child.stderr.on("data", () => {});
@@ -185,7 +187,17 @@ class AppServerClient {
   }
   rejectAll(error) { for (const item of this.pending.values()) { clearTimeout(item.timer); item.reject(error); } this.pending.clear(); }
   close() { if (this.child) { this.child.kill(); this.child = null; } this.initialized = false; }
-  async readRateLimits() { await this.connect(); return this.request("account/rateLimits/read", {}, 20_000); }
+  async readRateLimits() {
+    await this.connect();
+    try {
+      return await this.request("account/rateLimits/read", {}, 20_000);
+    } finally {
+      // The desktop App Server can invalidate a reused stdio session after a
+      // successful request. This radar reads only once per interval, so a fresh
+      // short-lived client is more reliable than holding a stale connection.
+      this.close();
+    }
+  }
 }
 
 async function fetchPublic() {
